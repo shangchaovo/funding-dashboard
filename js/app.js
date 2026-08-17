@@ -1,4 +1,5 @@
-import { THEMES, esc, toast, api, formatDay, icon, appIcon, shotImg } from "./util.js";
+import { esc, toast, api, formatDay, icon, appIcon, shotImg } from "./util.js";
+import { bindThemeSwitch, bindGlassLight } from "./theme.js";
 import { initAdmin } from "./admin.js";
 import { initDanmaku } from "./danmaku.js";
 
@@ -28,34 +29,8 @@ export function setContent({ notes, watchlist, now }) {
   if (now) state.now = now;
 }
 
-function applyTheme(theme, persist) {
-  const next = THEMES.includes(theme) ? theme : "liquid";
-  document.documentElement.dataset.theme = next;
-  if (persist) {
-    try { localStorage.setItem("hubTheme", next); } catch (error) {}
-  }
-  for (const button of document.querySelectorAll(".theme-btn")) {
-    button.setAttribute("aria-pressed", String(button.dataset.theme === next));
-  }
-}
-
-function bindThemeSwitch() {
-  applyTheme(document.documentElement.dataset.theme || "liquid", false);
-  document.querySelector(".theme-switch")?.addEventListener("click", (event) => {
-    const button = event.target.closest(".theme-btn");
-    if (!button) return;
-    applyTheme(button.dataset.theme, true);
-  });
-}
-
-function bindGlassLight() {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  window.addEventListener("pointermove", (event) => {
-    const x = Math.round((event.clientX / window.innerWidth) * 100);
-    const y = Math.round((event.clientY / window.innerHeight) * 100);
-    document.documentElement.style.setProperty("--glass-x", `${x}%`);
-    document.documentElement.style.setProperty("--glass-y", `${y}%`);
-  }, { passive: true });
+function noteHref(item) {
+  return item?.slug ? `/notes/${encodeURIComponent(item.slug)}/` : "#notes";
 }
 
 function liveProjects() {
@@ -80,8 +55,8 @@ function renderHero() {
   const twitter = state.site.socials.find((item) => item.id === "x");
   document.getElementById("heroActions").innerHTML = [
     coffee?.href ? `<a class="btn primary" href="${esc(coffee.href)}" target="_blank" rel="noopener">${appIcon("coffee", 22)} 请我喝杯咖啡</a>` : "",
-    github?.href ? `<a class="btn" href="${esc(github.href)}" target="_blank" rel="noopener">${appIcon("github", 22)} GitHub</a>` : "",
-    twitter?.href ? `<a class="btn" href="${esc(twitter.href)}" target="_blank" rel="noopener">${appIcon("x", 22)} X</a>` : "",
+    github?.href ? `<a class="btn" rel="me noopener" href="${esc(github.href)}" target="_blank">${appIcon("github", 22)} GitHub</a>` : "",
+    twitter?.href ? `<a class="btn" rel="me noopener" href="${esc(twitter.href)}" target="_blank">${appIcon("x", 22)} X</a>` : "",
     mail?.href ? `<a class="btn" href="${esc(mail.href)}">${appIcon("mail", 22)} 写信</a>` : "",
   ].join("");
   const nowText = state.now?.text || "";
@@ -102,7 +77,7 @@ function renderHero() {
   const sector = (state.watchlist.sectors || [])[0];
   document.getElementById("featuredJumps").innerHTML = [
     latest ? `
-      <a class="feature glass" data-tint="violet" href="#notes">
+      <a class="feature glass" data-tint="violet" href="${esc(noteHref(latest))}">
         <span class="well app">${appIcon("notes", 52)}</span>
         <span class="feature-copy">
           <strong>${esc(latest.title)}</strong>
@@ -169,8 +144,9 @@ function renderNotes() {
   document.getElementById("noteList").innerHTML = items.length ? items.map((item) => `
     <article class="note glass" data-id="${esc(item.id)}">
       <time>${icon("feather")} ${esc(formatDay(item.createdAt))}</time>
-      <h3>${esc(item.title)}</h3>
+      <h3>${item.slug ? `<a href="${esc(noteHref(item))}">${esc(item.title)}</a>` : esc(item.title)}</h3>
       <p>${esc(item.body)}</p>
+      ${item.slug ? `<p class="note-more"><a href="${esc(noteHref(item))}">阅读全文</a></p>` : ""}
       <div class="note-actions">
         <button class="btn" type="button" data-edit-note="${esc(item.id)}">${icon("edit")} 改</button>
         <button class="btn danger" type="button" data-del-note="${esc(item.id)}">${icon("trash")} 删</button>
@@ -216,7 +192,7 @@ function renderWatch() {
 function renderContact() {
   const items = (state.site.socials || []).filter((item) => item.kind !== "soon" && item.href);
   document.getElementById("contactGrid").innerHTML = items.map((item) => `
-    <a class="contact glass" href="${esc(item.href)}" ${item.href.startsWith("mailto:") ? "" : 'target="_blank" rel="noopener"'}>
+    <a class="contact glass" href="${esc(item.href)}" ${item.href.startsWith("mailto:") ? "" : `target="_blank" rel="${item.id === "github" || item.id === "x" ? "me noopener" : "noopener"}"`}>
       <span class="well app">${appIcon(item.icon || "mail", 56)}</span>
       <small>${esc(item.label)}</small>
       <strong>${esc(item.handle || item.label)}</strong>
@@ -234,16 +210,16 @@ export function render() {
 }
 
 async function loadContent() {
-  const site = await fetch("data/site.json").then((res) => res.json());
+  const site = await fetch("/data/site.json").then((res) => res.json());
   state.site = site;
   try {
     const content = await api("/api/content");
     setContent(content);
   } catch (error) {
     const [notes, watchlist, now] = await Promise.all([
-      fetch("data/notes.json").then((res) => res.json()),
-      fetch("data/watchlist.json").then((res) => res.json()),
-      fetch("data/now.json").then((res) => res.json()).catch(() => ({ text: "" })),
+      fetch("/data/notes.json").then((res) => res.json()),
+      fetch("/data/watchlist.json").then((res) => res.json()),
+      fetch("/data/now.json").then((res) => res.json()).catch(() => ({ text: "" })),
     ]);
     setContent({ notes, watchlist, now });
     toast("内容接口暂不可用，已显示仓库里的种子稿。");

@@ -7,8 +7,8 @@ cd "$(dirname "$0")/.."
 STAGE="$(mktemp -d /tmp/chase-hub.XXXXXX)"
 trap 'rm -rf "$STAGE"' EXIT
 
-cp index.html "$STAGE/"
-for dir in assets css js data functions; do
+cp index.html robots.txt sitemap.xml "$STAGE/"
+for dir in assets css js data functions about notes; do
   cp -R "$dir" "$STAGE/"
 done
 

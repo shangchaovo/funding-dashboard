@@ -3,7 +3,7 @@
     "name": "Chase Xie",
     "kicker": "嗨，我是",
     "title": "把常用的工具放在一张桌上",
-    "bio": "做市场工具，也做学习产品。想用的直接点进去；想看我最近在想什么、在盯哪些票，往下翻就好。",
+    "bio": "Chase Xie 是独立开发者。这个站点汇总已经挂在公网上的市场工具和学习产品，以及最近在盯的 AI 算力与 HBM。想用的直接点进去。",
     "avatar": "assets/avatar.jpg"
   },
   "socials": [
@@ -48,7 +48,7 @@
       "kind": "soon"
     }
   ],
-  "canonical": "https://chaestblog.is-a.dev/",
+  "canonical": "https://chaestblog.pages.dev/",
   "projects": [
     {
       "id": "wordpaper",

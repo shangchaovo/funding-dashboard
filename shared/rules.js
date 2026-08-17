@@ -41,12 +41,16 @@ function assertNotes(payload) {
   if (items.length > 100) throw Object.assign(new Error("观点太多了"), { status: 400 });
   return {
     updatedAt: new Date().toISOString(),
-    items: items.map((item) => ({
-      id: clip(item.id, 40) || `n_${Date.now()}`,
-      title: cleanText(item.title, NOTE_TITLE_MAX) || "未命名",
-      body: cleanText(item.body, NOTE_BODY_MAX),
-      createdAt: item.createdAt || new Date().toISOString(),
-    })),
+    items: items.map((item) => {
+      const slug = String(item.slug || "").trim();
+      return {
+        id: clip(item.id, 40) || `n_${Date.now()}`,
+        title: cleanText(item.title, NOTE_TITLE_MAX) || "未命名",
+        body: cleanText(item.body, NOTE_BODY_MAX),
+        createdAt: item.createdAt || new Date().toISOString(),
+        ...( /^[a-z0-9-]{1,80}$/.test(slug) ? { slug } : {}),
+      };
+    }),
   };
 }
 

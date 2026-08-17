@@ -905,3 +905,84 @@ dialog::backdrop { background: rgba(16, 22, 32, 0.42); }
   .dock input.nick, .dock input { flex: 1 1 100%; }
   .theme-btn span { display: none; }
 }
+
+.note h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+.note h3 a:hover,
+.note-more a:hover { text-decoration: underline; }
+.note-more {
+  margin: 10px 0 0;
+  font-size: 14px;
+  font-weight: 620;
+}
+
+body.page {
+  padding-bottom: 48px;
+}
+body.page .nav {
+  position: sticky;
+  top: 12px;
+}
+.page-doc {
+  width: min(760px, calc(100% - 36px));
+  margin: 28px auto 64px;
+}
+.page-doc .crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.page-doc .crumbs a { text-decoration: none; }
+.page-doc .crumbs a:hover { color: var(--ink); }
+.page-doc h1 {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+.page-doc .lede {
+  margin: 0 0 28px;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 560;
+  line-height: 1.55;
+}
+.page-doc .prose p,
+.page-doc .prose li {
+  color: var(--sub);
+  font-size: 16px;
+  line-height: 1.75;
+}
+.page-doc .prose p { margin: 0 0 1em; }
+.page-doc .prose h2 {
+  margin: 1.6em 0 0.55em;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+}
+.page-doc .prose ol,
+.page-doc .prose ul {
+  margin: 0 0 1em;
+  padding-left: 1.2em;
+}
+.page-doc .identity-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 8px 0 28px;
+}
+.page-doc .updated {
+  margin: 0 0 22px;
+  color: var(--muted);
+  font: 650 12px/1 var(--font-mono);
+}
+.page-doc .disclaimer {
+  margin-top: 28px;
+}
+

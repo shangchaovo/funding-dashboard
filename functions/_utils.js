@@ -1,5 +1,5 @@
 const DANMAKU_KEEP = 200;
-const RATE_MS = 8;
+const RATE_SECONDS = 8;
 const BLOCKED = [/https?:\/\//i, /<script/i, /\b(fuck|shit|bitch)\b/i, /加微信/, /免费领取/];
 
 export { DANMAKU_KEEP };
@@ -42,12 +42,16 @@ export function assertNotes(payload) {
   if (items.length > 100) throw Object.assign(new Error("观点太多了"), { status: 400 });
   return {
     updatedAt: new Date().toISOString(),
-    items: items.map((item) => ({
-      id: clip(item.id, 40) || `n_${Date.now()}`,
-      title: cleanText(item.title, 80) || "未命名",
-      body: cleanText(item.body, 4000),
-      createdAt: item.createdAt || new Date().toISOString(),
-    })),
+    items: items.map((item) => {
+      const slug = String(item.slug || "").trim();
+      return {
+        id: clip(item.id, 40) || `n_${Date.now()}`,
+        title: cleanText(item.title, 80) || "未命名",
+        body: cleanText(item.body, 4000),
+        createdAt: item.createdAt || new Date().toISOString(),
+        ...( /^[a-z0-9-]{1,80}$/.test(slug) ? { slug } : {}),
+      };
+    }),
   };
 }
 
@@ -173,9 +177,11 @@ export async function rateLimited(env, request) {
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   if (env.HUB_KV) {
     const key = `rate:${ip}`;
-    const hit = await env.HUB_KV.get(key);
-    if (hit) return true;
-    await env.HUB_KV.put(key, "1", { expirationTtl: RATE_MS });
+    const last = Number((await env.HUB_KV.get(key)) || 0);
+    const now = Date.now();
+    if (last && now - last < RATE_SECONDS * 1000) return true;
+    // KV 的 expirationTtl 最小为 60 秒，故改存时间戳来实现更短的限流窗口
+    await env.HUB_KV.put(key, String(now), { expirationTtl: 60 });
     return false;
   }
   return false;

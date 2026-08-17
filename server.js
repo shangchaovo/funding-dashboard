@@ -37,9 +37,12 @@ const MIME = {
   ".png": "image/png",
   ".webp": "image/webp",
   ".ico": "image/x-icon",
+  ".txt": "text/plain; charset=utf-8",
+  ".xml": "application/xml; charset=utf-8",
 };
 
-const STATIC_ROOTS = new Set(["css", "js", "data", "assets"]);
+const STATIC_ROOTS = new Set(["css", "js", "data", "assets", "about", "notes"]);
+const STATIC_FILES = new Set(["index.html", "robots.txt", "sitemap.xml"]);
 const rates = new Map();
 
 function send(res, status, body, headers = {}) {
@@ -156,11 +159,16 @@ function limited(ip) {
 function safeStaticPath(urlPath) {
   try {
     const decoded = decodeURIComponent(urlPath.split("?")[0]);
-    const requested = decoded === "/" ? "/index.html" : decoded;
-    const resolved = path.resolve(ROOT, `.${requested}`);
+    let requested = decoded === "/" ? "/index.html" : decoded;
+    if (requested.endsWith("/") && requested !== "/") requested += "index.html";
+    let resolved = path.resolve(ROOT, `.${requested}`);
     if (!resolved.startsWith(ROOT + path.sep) && resolved !== ROOT) return null;
+    if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+      resolved = path.join(resolved, "index.html");
+    }
     const rel = path.relative(ROOT, resolved).split(path.sep);
-    if (rel[0] === "index.html") return resolved;
+    if (rel.includes("..")) return null;
+    if (STATIC_FILES.has(rel[0]) && rel.length === 1) return resolved;
     if (!STATIC_ROOTS.has(rel[0])) return null;
     return resolved;
   } catch (error) {

@@ -62,10 +62,10 @@ export function icon(name, cls = "ic") {
 
 export function appIcon(name, size = 40) {
   const safe = /^[a-z0-9-]+$/i.test(name || "") ? name : "github";
-  return `<img class="app-icon" src="assets/icons/${safe}.svg" alt="" width="${size}" height="${size}">`;
+  return `<img class="app-icon" src="/assets/icons/${safe}.svg" alt="" width="${size}" height="${size}">`;
 }
 
 export function shotImg(src) {
   if (!src || !/^assets\/shots\/[a-z0-9-]+\.(jpg|jpeg|png|webp)$/i.test(src)) return "";
-  return `<img src="${esc(src)}" alt="">`;
+  return `<img src="/${esc(src)}" alt="">`;
 }

@@ -45,6 +45,12 @@ def request(base: str, path: str, method="GET", body=None, headers=None, cookies
         return error.code, payload, ""
 
 
+def fetch_text(base: str, path: str):
+    req = urllib.request.Request(base + path, method="GET")
+    with urllib.request.urlopen(req, timeout=5) as res:
+        return res.status, res.headers.get("Content-Type", ""), res.read().decode()
+
+
 def main() -> int:
     backups = {name: (ROOT / "data" / name).read_bytes() for name in FILES}
     port = free_port()
@@ -74,6 +80,30 @@ def main() -> int:
             html = res.read().decode()
             assert res.status == 200
             assert "Chase Xie" in html
+            assert "正在载入" not in html
+            assert "application/ld+json" in html
+            assert "https://chaestblog.pages.dev/" in html
+            assert "chaestblog.is-a.dev" not in html
+            assert "WordPaper" in html
+            assert "HBM" in html
+
+        status, ctype, robots = fetch_text(base, "/robots.txt")
+        assert status == 200 and "text/plain" in ctype, (status, ctype)
+        assert "OAI-SearchBot" in robots and "Sitemap:" in robots
+
+        status, ctype, sitemap = fetch_text(base, "/sitemap.xml")
+        assert status == 200 and "xml" in ctype, (status, ctype)
+        assert "https://chaestblog.pages.dev/about/" in sitemap
+        assert "https://chaestblog.pages.dev/notes/hbm-supply/" in sitemap
+
+        status, _, about = fetch_text(base, "/about/")
+        assert status == 200 and "独立开发者" in about and "shangchaovo" in about
+        status, _, about_noslash = fetch_text(base, "/about")
+        assert status == 200 and "独立开发者" in about_noslash
+
+        status, _, note = fetch_text(base, "/notes/hbm-supply/")
+        assert status == 200 and "High Bandwidth Memory" in note
+        assert "application/ld+json" in note
 
         status, content, _ = request(base, "/api/content")
         assert status == 200 and "notes" in content and "watchlist" in content
@@ -90,10 +120,11 @@ def main() -> int:
             base,
             "/api/notes",
             "PUT",
-            {"items": [{"id": "n_test", "title": "测试", "body": "仅接口测试", "createdAt": "2026-08-17T00:00:00.000Z"}]},
+            {"items": [{"id": "n_test", "slug": "hbm-supply", "title": "测试", "body": "仅接口测试", "createdAt": "2026-08-17T00:00:00.000Z"}]},
             cookies=session_cookie,
         )
         assert status == 200 and saved["notes"]["items"][0]["title"] == "测试"
+        assert saved["notes"]["items"][0].get("slug") == "hbm-supply"
 
         status, now_saved, _ = request(
             base,
