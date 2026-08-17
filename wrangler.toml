@@ -1,4 +1,4 @@
-# name = "chase-hub"
+# name = "chaestblog"
 # compatibility_date = "2026-08-17"
 # pages_build_output_dir = "."
 #
@@ -6,3 +6,5 @@
 # 在 Cloudflare Dashboard 绑定：
 #   HUB_ADMIN_TOKEN  管理口令
 #   KV namespace     绑定名 HUB_KV
+# 自定义域名 chaestblog.is-a.dev：先部署本项目，再把 scripts/chaestblog.is-a.dev.json
+# 提到 is-a-dev/register 的 domains/chaestblog.json，合并后到 https://cf-pages.is-a.dev 绑定。

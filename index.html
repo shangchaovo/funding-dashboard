@@ -3,11 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chase Xie · 个人导航</title>
+    <title>Chase Xie · chaestblog</title>
     <meta name="description" content="Chase Xie：市场工具、学习产品，和最近在盯的票。" />
+    <link rel="canonical" href="https://chaestblog.is-a.dev/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://chaestblog.is-a.dev/" />
+    <meta property="og:title" content="Chase Xie · chaestblog" />
+    <meta property="og:description" content="做市场工具，也做学习产品。想用的直接点进去。" />
+    <meta property="og:image" content="https://chaestblog.is-a.dev/assets/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@johny_xie" />
+    <meta name="twitter:title" content="Chase Xie · chaestblog" />
+    <meta name="twitter:description" content="做市场工具，也做学习产品。想用的直接点进去。" />
+    <meta name="twitter:image" content="https://chaestblog.is-a.dev/assets/og.jpg" />
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-    <link rel="stylesheet" href="css/themes.css?v=20260817i" />
-    <link rel="stylesheet" href="css/styles.css?v=20260817i" />
+    <link rel="stylesheet" href="css/themes.css?v=20260817j" />
+    <link rel="stylesheet" href="css/styles.css?v=20260817j" />
     <script>
       (function () {
         try {
@@ -64,8 +77,7 @@
         </span>
       </a>
       <nav class="nav-links" aria-label="页面区块">
-        <a href="#jumps"><svg class="ic"><use href="#i-compass"></use></svg>跳转</a>
-        <a href="#projects"><svg class="ic"><use href="#i-apps"></use></svg>项目</a>
+        <a href="#sites"><svg class="ic"><use href="#i-compass"></use></svg>站点</a>
         <a href="#notes"><svg class="ic"><use href="#i-feather"></use></svg>观点</a>
         <a href="#watch"><svg class="ic"><use href="#i-trend"></use></svg>关注</a>
         <a href="#contact"><svg class="ic"><use href="#i-chat"></use></svg>联系</a>
@@ -97,39 +109,33 @@
             </div>
           </div>
           <p class="lead" id="profileBio">正在载入…</p>
+          <p class="now" id="profileNow" hidden>
+            <span class="now-kicker">最近在做</span>
+            <span class="now-text"></span>
+            <button class="btn ghost admin-only" id="editNowBtn" type="button">改</button>
+          </p>
           <div class="hero-actions" id="heroActions"></div>
           <div class="stat-row" id="statRow"></div>
         </article>
         <aside class="hero-aside" id="featuredJumps"></aside>
       </section>
 
-      <section id="jumps" class="section">
+      <section id="sites" class="section">
         <div class="section-head">
           <div>
-            <p class="kicker"><svg class="ic"><use href="#i-compass"></use></svg> 01 · Launch</p>
+            <p class="kicker"><svg class="ic"><use href="#i-compass"></use></svg> 01 · Live</p>
             <h2>在线上的</h2>
           </div>
           <p class="hint">点开就是正在跑的站点</p>
         </div>
-        <div class="jumps" id="jumpGrid"></div>
-      </section>
-
-      <section id="projects" class="section">
-        <div class="section-head">
-          <div>
-            <p class="kicker"><svg class="ic"><use href="#i-apps"></use></svg> 02 · Work</p>
-            <h2>项目墙</h2>
-          </div>
-          <p class="hint">能打开的都在这儿</p>
-        </div>
-        <div class="project-board" id="projectGrid"></div>
+        <div class="project-board" id="siteGrid"></div>
       </section>
 
       <div class="magazine">
         <section id="notes" class="section">
           <div class="section-head">
             <div>
-              <p class="kicker"><svg class="ic"><use href="#i-feather"></use></svg> 03 · Notes</p>
+              <p class="kicker"><svg class="ic"><use href="#i-feather"></use></svg> 02 · Notes</p>
               <h2>观点</h2>
             </div>
             <p class="hint">随便写的，过阵子可能改掉</p>
@@ -143,7 +149,7 @@
         <section id="watch" class="section">
           <div class="section-head">
             <div>
-              <p class="kicker"><svg class="ic"><use href="#i-trend"></use></svg> 04 · Watch</p>
+              <p class="kicker"><svg class="ic"><use href="#i-trend"></use></svg> 03 · Watch</p>
               <h2>最近盯的板块</h2>
             </div>
             <p class="hint">最近在看的方向，不是买卖建议</p>
@@ -160,7 +166,7 @@
       <section id="contact" class="section">
         <div class="section-head">
           <div>
-            <p class="kicker"><svg class="ic"><use href="#i-chat"></use></svg> 05 · Contact</p>
+            <p class="kicker"><svg class="ic"><use href="#i-chat"></use></svg> 04 · Contact</p>
             <h2>联系与支持</h2>
           </div>
           <p class="hint">GitHub、X，或者请我喝杯咖啡</p>
@@ -208,7 +214,7 @@
     </dialog>
 
     <div class="toast-host" id="toastHost" aria-live="polite"></div>
-    <script src="js/app.js?v=20260817i" type="module"></script>
+    <script src="js/app.js?v=20260817j" type="module"></script>
     <noscript>打开 JavaScript 才能看完整页面。</noscript>
   </body>
 </html>

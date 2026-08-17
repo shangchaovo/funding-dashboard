@@ -219,6 +219,7 @@ async function handleApi(req, res, url) {
     sendJson(res, 200, {
       notes: readJson("notes.json", { items: [] }),
       watchlist: readJson("watchlist.json", { sectors: [] }),
+      now: readJson("now.json", { text: "" }),
     });
     return;
   }
@@ -242,6 +243,17 @@ async function handleApi(req, res, url) {
     const watchlist = rules.assertWatchlist(JSON.parse((await readBody(req)) || "{}"));
     writeJson("watchlist.json", watchlist);
     sendJson(res, 200, { ok: true, watchlist });
+    return;
+  }
+
+  if (route === "/api/now" && req.method === "PUT") {
+    if (!isAdmin(req)) {
+      sendJson(res, 401, { error: "这项只能我来改" });
+      return;
+    }
+    const now = rules.assertNow(JSON.parse((await readBody(req)) || "{}"));
+    writeJson("now.json", now);
+    sendJson(res, 200, { ok: true, now });
     return;
   }
 

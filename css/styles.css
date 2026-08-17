@@ -302,6 +302,30 @@ body {
   line-height: 1.7;
 }
 
+.now {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--chip);
+}
+.now-kicker {
+  color: var(--muted);
+  font: 700 11px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.now-text {
+  flex: 1;
+  min-width: 12ch;
+  font-weight: 620;
+}
+.now .btn { min-height: 32px; padding: 0 10px; }
+
 .hero-actions,
 .editor-bar,
 .card-links,
@@ -686,6 +710,11 @@ body.admin .editor-bar { display: flex; }
   font: 750 14px/1 var(--font-mono);
   letter-spacing: 0.04em;
 }
+.symbol a {
+  color: inherit;
+  text-decoration: none;
+}
+.symbol a:hover { text-decoration: underline; }
 
 .disclaimer {
   margin: 14px 0 0;

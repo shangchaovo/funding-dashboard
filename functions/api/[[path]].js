@@ -11,6 +11,7 @@ import {
   assertDanmaku,
   assertNotes,
   assertWatchlist,
+  assertNow,
   randomId,
   tokenOk,
   DANMAKU_KEEP,
@@ -52,11 +53,12 @@ export async function onRequest(context) {
     }
 
     if (route === "content" && method === "GET") {
-      const [notes, watchlist] = await Promise.all([
+      const [notes, watchlist, now] = await Promise.all([
         readStore(env, request, "notes", "/data/notes.json", { items: [] }),
         readStore(env, request, "watchlist", "/data/watchlist.json", { sectors: [] }),
+        readStore(env, request, "now", "/data/now.json", { text: "" }),
       ]);
-      return json(200, { notes, watchlist, kv: Boolean(env.HUB_KV) });
+      return json(200, { notes, watchlist, now, kv: Boolean(env.HUB_KV) });
     }
 
     if (route === "notes" && method === "PUT") {
@@ -71,6 +73,13 @@ export async function onRequest(context) {
       const watchlist = assertWatchlist(await readJson(request));
       await writeStore(env, "watchlist", watchlist);
       return json(200, { ok: true, watchlist });
+    }
+
+    if (route === "now" && method === "PUT") {
+      if (!(await isAdmin(request, env))) return json(401, { error: "这项只能我来改" });
+      const now = assertNow(await readJson(request));
+      await writeStore(env, "now", now);
+      return json(200, { ok: true, now });
     }
 
     if (route === "danmaku" && method === "GET") {

@@ -2,10 +2,13 @@ import { THEMES, esc, toast, api, formatDay, icon, appIcon, shotImg } from "./ut
 import { initAdmin } from "./admin.js";
 import { initDanmaku } from "./danmaku.js";
 
+const RESEARCH = "https://fresearch.cc.cd/";
+
 const state = {
   site: null,
   notes: { items: [] },
   watchlist: { sectors: [], disclaimer: "" },
+  now: { text: "" },
   admin: false,
 };
 
@@ -16,11 +19,13 @@ export function getState() {
 export function setAdmin(on) {
   state.admin = Boolean(on);
   document.body.classList.toggle("admin", state.admin);
+  if (state.site) renderHero();
 }
 
-export function setContent({ notes, watchlist }) {
+export function setContent({ notes, watchlist, now }) {
   if (notes) state.notes = notes;
   if (watchlist) state.watchlist = watchlist;
+  if (now) state.now = now;
 }
 
 function applyTheme(theme, persist) {
@@ -53,10 +58,6 @@ function bindGlassLight() {
   }, { passive: true });
 }
 
-function liveJumps() {
-  return (state.site.jumps || []).filter((item) => item.href);
-}
-
 function liveProjects() {
   return (state.site.projects || []).filter((item) => item.status === "live" && item.live);
 }
@@ -68,7 +69,6 @@ function setSectionVisible(id, on) {
 
 function renderHero() {
   const profile = state.site.profile;
-  const jumps = liveJumps();
   const projects = liveProjects();
   document.getElementById("profileKicker").innerHTML = `${icon("spark")} ${esc(profile.kicker)}`;
   document.getElementById("profileName").textContent = profile.name;
@@ -84,10 +84,17 @@ function renderHero() {
     twitter?.href ? `<a class="btn" href="${esc(twitter.href)}" target="_blank" rel="noopener">${appIcon("x", 22)} X</a>` : "",
     mail?.href ? `<a class="btn" href="${esc(mail.href)}">${appIcon("mail", 22)} 写信</a>` : "",
   ].join("");
+  const nowText = state.now?.text || "";
+  const nowBox = document.getElementById("profileNow");
+  if (nowBox) {
+    nowBox.hidden = !nowText && !state.admin;
+    const label = nowBox.querySelector(".now-text");
+    if (label) label.textContent = nowText || "写一句最近在做的事";
+  }
   const noteCount = (state.notes.items || []).length;
   const stockCount = (state.watchlist.sectors || []).reduce((sum, sector) => sum + (sector.stocks || []).length, 0);
   document.getElementById("statRow").innerHTML = `
-    <div class="stat"><b>${projects.length || jumps.length}</b><span>在线站点</span></div>
+    <div class="stat"><b>${projects.length}</b><span>在线站点</span></div>
     <div class="stat"><b>${noteCount}</b><span>条观点</span></div>
     <div class="stat"><b>${stockCount}</b><span>只在盯</span></div>
   `;
@@ -127,28 +134,14 @@ function renderHero() {
   ].join("");
 }
 
-function renderJumps() {
-  const items = liveJumps();
-  setSectionVisible("jumpGrid", items.length > 0);
-  document.getElementById("jumpGrid").innerHTML = items.map((item) => `
-    <a class="jump glass" data-tint="${esc(item.tint || "blue")}" href="${esc(item.href)}" target="_blank" rel="noopener">
-      ${item.shot ? `<span class="shot">${shotImg(item.shot)}</span>` : ""}
-      <span class="jump-meta">
-        <span class="well app">${appIcon(item.icon || "book", 40)}</span>
-        <span class="copy">
-          <strong>${esc(item.name)}</strong>
-          <span>${esc(item.blurb)}</span>
-        </span>
-        ${icon("external")}
-      </span>
-    </a>
-  `).join("");
-}
-
-function renderProjects() {
+function renderSites() {
   const items = liveProjects();
-  setSectionVisible("projectGrid", items.length > 0);
-  document.getElementById("projectGrid").innerHTML = items.map((item) => `
+  setSectionVisible("siteGrid", items.length > 0);
+  document.getElementById("siteGrid").innerHTML = items.map((item) => {
+    const github = item.github && item.githubPublic !== false
+      ? `<a class="btn" href="${esc(item.github)}" target="_blank" rel="noopener">${appIcon("github", 18)} GitHub</a>`
+      : "";
+    return `
     <article class="card glass" data-tint="${esc(item.tint || "blue")}">
       ${item.shot && item.live ? `<a class="shot" href="${esc(item.live)}" target="_blank" rel="noopener">${shotImg(item.shot)}</a>` : ""}
       <div class="card-top">
@@ -165,10 +158,10 @@ function renderProjects() {
       <p>${esc(item.summary)}</p>
       <div class="card-links">
         ${item.live ? `<a class="btn primary" href="${esc(item.live)}" target="_blank" rel="noopener">${icon("arrow")} 打开</a>` : ""}
-        ${item.github ? `<a class="btn" href="${esc(item.github)}" target="_blank" rel="noopener">${appIcon("github", 18)} GitHub</a>` : ""}
+        ${github}
       </div>
-    </article>
-  `).join("");
+    </article>`;
+  }).join("");
 }
 
 function renderNotes() {
@@ -205,7 +198,7 @@ function renderWatch() {
         ${(sector.stocks || []).map((stock) => `
           <div class="stock" data-id="${esc(stock.id)}">
             <div class="stock-head">
-              <span class="symbol">${esc(stock.symbol)}</span>
+              <span class="symbol"><a href="${esc(RESEARCH)}" target="_blank" rel="noopener">${esc(stock.symbol)}</a></span>
               <strong>${esc(stock.name)}</strong>
               <div class="row-actions">
                 <button class="btn" type="button" data-edit-stock="${esc(sector.id)}:${esc(stock.id)}">${icon("edit")}</button>
@@ -234,8 +227,7 @@ function renderContact() {
 export function render() {
   if (!state.site) return;
   renderHero();
-  renderJumps();
-  renderProjects();
+  renderSites();
   renderNotes();
   renderWatch();
   renderContact();
@@ -248,11 +240,12 @@ async function loadContent() {
     const content = await api("/api/content");
     setContent(content);
   } catch (error) {
-    const [notes, watchlist] = await Promise.all([
+    const [notes, watchlist, now] = await Promise.all([
       fetch("data/notes.json").then((res) => res.json()),
       fetch("data/watchlist.json").then((res) => res.json()),
+      fetch("data/now.json").then((res) => res.json()).catch(() => ({ text: "" })),
     ]);
-    setContent({ notes, watchlist });
+    setContent({ notes, watchlist, now });
     toast("内容接口暂不可用，已显示仓库里的种子稿。");
   }
 }

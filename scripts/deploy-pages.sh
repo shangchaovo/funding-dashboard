@@ -13,7 +13,7 @@ for dir in assets css js data functions; do
 done
 
 npx -y wrangler@4.113.0 pages deploy "$STAGE" \
-  --project-name "${CLOUDFLARE_PAGES_PROJECT:-chase-hub}" \
+  --project-name "${CLOUDFLARE_PAGES_PROJECT:-chaestblog}" \
   --commit-dirty=true
 
 echo "部署完成。在 Pages 设置里加："

@@ -43,6 +43,11 @@ async function saveNotes(items) {
   await refreshContent();
 }
 
+async function saveNow(text) {
+  await api("/api/now", { method: "PUT", body: JSON.stringify({ text }) });
+  await refreshContent();
+}
+
 async function saveWatchlist(watchlist) {
   const payload = { ...watchlist, updatedAt: new Date().toISOString() };
   await api("/api/watchlist", { method: "PUT", body: JSON.stringify(payload) });
@@ -78,6 +83,16 @@ function bindLogin() {
     } catch (error) {
       toast(error.message || "口令不对");
     }
+  });
+}
+
+function editNow() {
+  openEditor({
+    title: "最近在做",
+    html: field("一句话", "text", getState().now?.text),
+    onSubmit: async (data) => {
+      await saveNow(data.text);
+    },
   });
 }
 
@@ -157,6 +172,7 @@ function editStock(sectorId, existing) {
 }
 
 function bindEditors() {
+  document.getElementById("editNowBtn")?.addEventListener("click", () => editNow());
   document.getElementById("addNoteBtn")?.addEventListener("click", () => editNote(null));
   document.getElementById("addSectorBtn")?.addEventListener("click", () => editSector(null));
   document.getElementById("addStockBtn")?.addEventListener("click", () => {

@@ -70,6 +70,13 @@ export function assertWatchlist(payload) {
   };
 }
 
+export function assertNow(payload) {
+  return {
+    text: cleanText(payload?.text, 80),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 export function adminSecret(env) {
   return String(env.HUB_ADMIN_TOKEN || "").trim();
 }

@@ -48,44 +48,7 @@
       "kind": "soon"
     }
   ],
-  "jumps": [
-    {
-      "id": "wordpaper",
-      "icon": "book",
-      "tint": "violet",
-      "name": "WordPaper",
-      "blurb": "把单词做成壁纸",
-      "href": "https://wordpaper.pages.dev/",
-      "shot": "assets/shots/wordpaper.jpg"
-    },
-    {
-      "id": "terminal",
-      "icon": "terminal",
-      "tint": "cyan",
-      "name": "加密终端",
-      "blurb": "费率 / Meme / 清算 / 期权",
-      "href": "https://crypto-funding-arbitrage.pages.dev/",
-      "shot": "assets/shots/terminal.jpg"
-    },
-    {
-      "id": "research",
-      "icon": "chart",
-      "tint": "amber",
-      "name": "投行研报",
-      "blurb": "评级与目标价追踪",
-      "href": "https://fresearch.cc.cd/",
-      "shot": "assets/shots/research.jpg"
-    },
-    {
-      "id": "resume",
-      "icon": "file",
-      "tint": "rose",
-      "name": "简历工坊",
-      "blurb": "校招简历在线排版",
-      "href": "https://resume-5lv.pages.dev/",
-      "shot": "assets/shots/resume.jpg"
-    }
-  ],
+  "canonical": "https://chaestblog.is-a.dev/",
   "projects": [
     {
       "id": "wordpaper",
@@ -108,6 +71,7 @@
       "summary": "跨所资金费率套利、Meme 异动、清算热图与期权 Wall，统一在一个深色终端里。",
       "live": "https://crypto-funding-arbitrage.pages.dev/",
       "github": "https://github.com/shangchaovo/crypto-funding-arbitrage",
+      "githubPublic": false,
       "shot": "assets/shots/terminal.jpg",
       "status": "live"
     },

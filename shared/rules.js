@@ -69,10 +69,18 @@ function assertWatchlist(payload) {
   };
 }
 
+function assertNow(payload) {
+  return {
+    text: cleanText(payload?.text, 80),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 module.exports = {
   DANMAKU_KEEP,
   RATE_MS,
   assertDanmaku,
   assertNotes,
   assertWatchlist,
+  assertNow,
 };

@@ -13,7 +13,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FILES = ["notes.json", "watchlist.json", "danmaku.json"]
+FILES = ["notes.json", "watchlist.json", "danmaku.json", "now.json"]
 
 
 def free_port() -> int:
@@ -94,6 +94,15 @@ def main() -> int:
             cookies=session_cookie,
         )
         assert status == 200 and saved["notes"]["items"][0]["title"] == "测试"
+
+        status, now_saved, _ = request(
+            base,
+            "/api/now",
+            "PUT",
+            {"text": "测试最近在做"},
+            cookies=session_cookie,
+        )
+        assert status == 200 and now_saved["now"]["text"] == "测试最近在做", (status, now_saved)
 
         status, _, _ = request(base, "/api/notes", "PUT", {"items": []})
         assert status == 401
