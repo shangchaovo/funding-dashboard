@@ -1,4 +1,4 @@
-import { THEMES, esc, toast, api, formatDay, icon, appIcon } from "./util.js";
+import { THEMES, esc, toast, api, formatDay, icon, appIcon, shotImg } from "./util.js";
 import { initAdmin } from "./admin.js";
 import { initDanmaku } from "./danmaku.js";
 
@@ -53,10 +53,23 @@ function bindGlassLight() {
   }, { passive: true });
 }
 
+function liveJumps() {
+  return (state.site.jumps || []).filter((item) => item.href);
+}
+
+function liveProjects() {
+  return (state.site.projects || []).filter((item) => item.status === "live" && item.live);
+}
+
+function setSectionVisible(id, on) {
+  const section = document.getElementById(id)?.closest(".section");
+  if (section) section.hidden = !on;
+}
+
 function renderHero() {
   const profile = state.site.profile;
-  const jumps = state.site.jumps || [];
-  const projects = state.site.projects || [];
+  const jumps = liveJumps();
+  const projects = liveProjects();
   document.getElementById("profileKicker").innerHTML = `${icon("spark")} ${esc(profile.kicker)}`;
   document.getElementById("profileName").textContent = profile.name;
   document.getElementById("profileTitle").textContent = profile.title;
@@ -71,11 +84,12 @@ function renderHero() {
     twitter?.href ? `<a class="btn" href="${esc(twitter.href)}" target="_blank" rel="noopener">${appIcon("x", 22)} X</a>` : "",
     mail?.href ? `<a class="btn" href="${esc(mail.href)}">${appIcon("mail", 22)} 写信</a>` : "",
   ].join("");
-  const liveCount = projects.filter((item) => item.status === "live").length;
+  const noteCount = (state.notes.items || []).length;
+  const stockCount = (state.watchlist.sectors || []).reduce((sum, sector) => sum + (sector.stocks || []).length, 0);
   document.getElementById("statRow").innerHTML = `
-    <div class="stat"><b>${projects.length}</b><span>个项目</span></div>
-    <div class="stat"><b>${liveCount}</b><span>已上线</span></div>
-    <div class="stat"><b>${jumps.length}</b><span>常用</span></div>
+    <div class="stat"><b>${projects.length || jumps.length}</b><span>在线站点</span></div>
+    <div class="stat"><b>${noteCount}</b><span>条观点</span></div>
+    <div class="stat"><b>${stockCount}</b><span>只在盯</span></div>
   `;
   const latest = (state.notes.items || [])[0];
   const sector = (state.watchlist.sectors || [])[0];
@@ -114,26 +128,34 @@ function renderHero() {
 }
 
 function renderJumps() {
-  document.getElementById("jumpGrid").innerHTML = state.site.jumps.map((item) => `
+  const items = liveJumps();
+  setSectionVisible("jumpGrid", items.length > 0);
+  document.getElementById("jumpGrid").innerHTML = items.map((item) => `
     <a class="jump glass" data-tint="${esc(item.tint || "blue")}" href="${esc(item.href)}" target="_blank" rel="noopener">
-      <div class="jump-top">
-        <span class="well app">${appIcon(item.icon || "book", 52)}</span>
+      ${item.shot ? `<span class="shot">${shotImg(item.shot)}</span>` : ""}
+      <span class="jump-meta">
+        <span class="well app">${appIcon(item.icon || "book", 40)}</span>
+        <span class="copy">
+          <strong>${esc(item.name)}</strong>
+          <span>${esc(item.blurb)}</span>
+        </span>
         ${icon("external")}
-      </div>
-      <strong>${esc(item.name)}</strong>
-      <span>${esc(item.blurb)}</span>
+      </span>
     </a>
   `).join("");
 }
 
 function renderProjects() {
-  document.getElementById("projectGrid").innerHTML = state.site.projects.map((item, index) => `
-    <article class="card glass ${index < 2 ? "wide" : ""}" data-tint="${esc(item.tint || "blue")}">
+  const items = liveProjects();
+  setSectionVisible("projectGrid", items.length > 0);
+  document.getElementById("projectGrid").innerHTML = items.map((item) => `
+    <article class="card glass" data-tint="${esc(item.tint || "blue")}">
+      ${item.shot && item.live ? `<a class="shot" href="${esc(item.live)}" target="_blank" rel="noopener">${shotImg(item.shot)}</a>` : ""}
       <div class="card-top">
-        <span class="well app">${appIcon(item.icon || "book", 52)}</span>
-        <span class="pill ${item.status === "live" ? "live" : "degraded"}">
+        <span class="well app">${appIcon(item.icon || "book", 46)}</span>
+        <span class="pill live">
           <i class="live-dot" aria-hidden="true"></i>
-          ${item.status === "live" ? "在线" : "检修中"}
+          在线
         </span>
       </div>
       <div>

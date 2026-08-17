@@ -55,7 +55,8 @@
       "tint": "violet",
       "name": "WordPaper",
       "blurb": "把单词做成壁纸",
-      "href": "https://wordpaper.pages.dev/"
+      "href": "https://wordpaper.pages.dev/",
+      "shot": "assets/shots/wordpaper.jpg"
     },
     {
       "id": "terminal",
@@ -63,7 +64,8 @@
       "tint": "cyan",
       "name": "加密终端",
       "blurb": "费率 / Meme / 清算 / 期权",
-      "href": "https://crypto-funding-arbitrage.pages.dev/"
+      "href": "https://crypto-funding-arbitrage.pages.dev/",
+      "shot": "assets/shots/terminal.jpg"
     },
     {
       "id": "research",
@@ -71,7 +73,8 @@
       "tint": "amber",
       "name": "投行研报",
       "blurb": "评级与目标价追踪",
-      "href": "https://fresearch.cc.cd/"
+      "href": "https://fresearch.cc.cd/",
+      "shot": "assets/shots/research.jpg"
     },
     {
       "id": "resume",
@@ -79,7 +82,8 @@
       "tint": "rose",
       "name": "简历工坊",
       "blurb": "校招简历在线排版",
-      "href": "https://resume-5lv.pages.dev/"
+      "href": "https://resume-5lv.pages.dev/",
+      "shot": "assets/shots/resume.jpg"
     }
   ],
   "projects": [
@@ -92,6 +96,7 @@
       "summary": "每日单词 + 艾宾浩斯复习做成手机 / 电脑壁纸，支持多用户账号与 Liquid Glass 界面。",
       "live": "https://wordpaper.pages.dev/",
       "github": "https://github.com/shangchaovo/daily-wallpaper",
+      "shot": "assets/shots/wordpaper.jpg",
       "status": "live"
     },
     {
@@ -103,6 +108,7 @@
       "summary": "跨所资金费率套利、Meme 异动、清算热图与期权 Wall，统一在一个深色终端里。",
       "live": "https://crypto-funding-arbitrage.pages.dev/",
       "github": "https://github.com/shangchaovo/crypto-funding-arbitrage",
+      "shot": "assets/shots/terminal.jpg",
       "status": "live"
     },
     {
@@ -114,6 +120,7 @@
       "summary": "追踪 UBS / Citi / MS / JPM 等对 AI 算力主线的评级与目标价，多源抓取 + LLM 摘要。",
       "live": "https://fresearch.cc.cd/",
       "github": "https://github.com/shangchaovo/ib-research",
+      "shot": "assets/shots/research.jpg",
       "status": "live"
     },
     {
@@ -125,18 +132,8 @@
       "summary": "面向校招的纯前端简历编辑器：左表单右 A4，导出矢量 PDF，数据只存在你的浏览器。",
       "live": "https://resume-5lv.pages.dev/",
       "github": "https://github.com/shangchaovo/resume-site",
+      "shot": "assets/shots/resume.jpg",
       "status": "live"
-    },
-    {
-      "id": "options",
-      "icon": "candles",
-      "tint": "gold",
-      "name": "期权集中押注",
-      "tag": "加密",
-      "summary": "BTC / ETH 行权价持仓分布、Max Pain 与大额押注区域。公网 Pages 目前不稳定，源码可本机跑。",
-      "live": "https://crypto-options-analyzer.pages.dev/",
-      "github": "https://github.com/shangchaovo/crypto-options-analyzer",
-      "status": "degraded"
     }
   ]
 }
