@@ -88,6 +88,17 @@
       "status": "live"
     },
     {
+      "id": "dailytrade",
+      "icon": "candles",
+      "tint": "gold",
+      "name": "交易每日报告",
+      "tag": "交易",
+      "summary": "开盘前的作战台：A股量化扫描、外资研报、美股监控、宏观跨资产和社媒情绪，合成一张每日交易报告。",
+      "live": "https://dailytrade.cc.cd/",
+      "shot": "assets/shots/dailytrade.jpg",
+      "status": "live"
+    },
+    {
       "id": "resume",
       "icon": "file",
       "tint": "rose",
