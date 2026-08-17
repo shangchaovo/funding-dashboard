@@ -32,7 +32,7 @@ node server.js         # http://127.0.0.1:8777
 bash scripts/deploy-pages.sh
 ```
 
-项目名默认 `chaestblog`，上线后地址是 `https://chaestblog.pages.dev/`。自定义域名 `chaestblog.is-a.dev` 需要：
+项目名默认 `chaestblog`，脚本默认发生产分支 `main`，上线后地址是 `https://chaestblog.pages.dev/`。自定义域名 `chaestblog.is-a.dev` 需要：
 
 1. 这份 Pages 部署成功
 2. is-a.dev 的注册 PR 合并（CNAME → `chaestblog.pages.dev`）

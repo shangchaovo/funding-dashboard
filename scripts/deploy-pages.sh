@@ -12,10 +12,13 @@ for dir in assets css js data functions; do
   cp -R "$dir" "$STAGE/"
 done
 
+# 默认发生产分支 main。不指定 --branch 时 wrangler 会跟当前 git 分支走，变成预览部署。
 npx -y wrangler@4.113.0 pages deploy "$STAGE" \
   --project-name "${CLOUDFLARE_PAGES_PROJECT:-chaestblog}" \
+  --branch "${CLOUDFLARE_PAGES_BRANCH:-main}" \
   --commit-dirty=true
 
-echo "部署完成。在 Pages 设置里加："
-echo "  HUB_ADMIN_TOKEN = 你的管理口令"
-echo "  KV 绑定名称 HUB_KV（弹幕和在线编辑需要它）"
+echo "部署完成。生产地址：https://chaestblog.pages.dev/"
+echo "弹幕和在线编辑还要在 Pages 设置里加："
+echo "  环境变量 HUB_ADMIN_TOKEN = 你的管理口令"
+echo "  KV 命名空间，绑定名必须是 HUB_KV（需要 Workers KV 权限，不只是 Pages 编辑）"
