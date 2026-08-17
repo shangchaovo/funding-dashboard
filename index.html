@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="liquid">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chase Xie · 个人导航</title>
+    <meta name="description" content="Chase Xie 的 vibe-coding 导航站：已上线项目、个人观点与盯盘笔记。" />
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+    <link rel="stylesheet" href="css/themes.css?v=20260817" />
+    <link rel="stylesheet" href="css/styles.css?v=20260817" />
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("hubTheme");
+          if (theme === "liquid" || theme === "eye" || theme === "ink") {
+            document.documentElement.dataset.theme = theme;
+          }
+        } catch (error) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="danmakuStage" class="danmaku-stage" aria-hidden="true"></div>
+
+    <header class="nav glass">
+      <a class="brand" href="#top">
+        <img class="brand-avatar" src="assets/avatar.jpg" alt="" width="42" height="42" />
+        <span>Chase Xie</span>
+      </a>
+      <nav class="nav-links" aria-label="页面区块">
+        <a href="#jumps">跳转</a>
+        <a href="#projects">项目</a>
+        <a href="#notes">观点</a>
+        <a href="#watch">关注</a>
+        <a href="#contact">联系</a>
+      </nav>
+      <div class="theme-switch" role="radiogroup" aria-label="主题">
+        <button class="theme-btn" type="button" data-theme="liquid" aria-pressed="true">
+          <i class="orb orb-liquid" aria-hidden="true"></i><span>玻璃</span>
+        </button>
+        <button class="theme-btn" type="button" data-theme="eye" aria-pressed="false">
+          <i class="orb orb-eye" aria-hidden="true"></i><span>护眼</span>
+        </button>
+        <button class="theme-btn" type="button" data-theme="ink" aria-pressed="false">
+          <i class="orb orb-ink" aria-hidden="true"></i><span>墨夜</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section id="top" class="hero glass">
+        <img
+          id="heroAvatar"
+          class="hero-avatar"
+          src="assets/avatar.jpg"
+          alt="Chase Xie"
+          width="168"
+          height="168"
+        />
+        <div>
+          <p class="kicker" id="profileKicker">Vibe Coding Hub</p>
+          <h1 id="profileTitle">把已上线的工具放在一张桌上</h1>
+          <p class="lead" id="profileBio">正在载入…</p>
+          <div class="hero-actions" id="heroActions"></div>
+        </div>
+      </section>
+
+      <section id="jumps" class="section">
+        <div class="section-head">
+          <h2>快速跳转</h2>
+          <p class="hint">已经挂在公网上的入口</p>
+        </div>
+        <div class="jumps" id="jumpGrid"></div>
+      </section>
+
+      <section id="projects" class="section">
+        <div class="section-head">
+          <h2>项目墙</h2>
+          <p class="hint">Live 与 GitHub 分开走</p>
+        </div>
+        <div class="cards" id="projectGrid"></div>
+      </section>
+
+      <section id="notes" class="section">
+        <div class="section-head">
+          <h2>观点</h2>
+          <p class="hint">只有我会改这里</p>
+        </div>
+        <div class="admin-only" style="margin-bottom:12px">
+          <button class="btn primary" id="addNoteBtn" type="button">写一条</button>
+        </div>
+        <div class="notes" id="noteList"></div>
+      </section>
+
+      <section id="watch" class="section">
+        <div class="section-head">
+          <h2>最近盯的板块</h2>
+          <p class="hint">理由可以随时改</p>
+        </div>
+        <div class="admin-only" style="margin-bottom:12px;gap:8px">
+          <button class="btn primary" id="addSectorBtn" type="button">加板块</button>
+          <button class="btn" id="addStockBtn" type="button">加个股</button>
+        </div>
+        <div id="watchList"></div>
+        <p class="disclaimer" id="watchDisclaimer"></p>
+      </section>
+
+      <section id="contact" class="section">
+        <div class="section-head">
+          <h2>联系与支持</h2>
+          <p class="hint">咖啡、邮件、代码</p>
+        </div>
+        <div class="contact-grid" id="contactGrid"></div>
+      </section>
+    </main>
+
+    <form class="dock glass" id="danmakuForm">
+      <label class="sr-only" for="danmakuNick">昵称</label>
+      <input class="nick" id="danmakuNick" name="nick" maxlength="12" placeholder="昵称（选填）" autocomplete="nickname" />
+      <label class="sr-only" for="danmakuText">弹幕</label>
+      <input id="danmakuText" name="text" maxlength="36" placeholder="留一条弹幕，飞过这页…" required />
+      <button class="btn primary" type="submit">发送</button>
+      <button class="btn ghost admin-only" id="clearDanmakuBtn" type="button">清空弹幕</button>
+      <button class="btn ghost admin-only" id="logoutBtn" type="button">退出编辑</button>
+    </form>
+
+    <dialog id="adminDialog">
+      <form class="modal glass" id="adminForm" method="dialog">
+        <h3>作者入口</h3>
+        <p>访客看不见这个口令。连点头像五次，或在网址后加 <code>?edit=1</code>。</p>
+        <label class="field">
+          <span>管理口令</span>
+          <input id="adminToken" type="password" name="token" autocomplete="current-password" />
+        </label>
+        <div class="modal-actions">
+          <button class="btn ghost" value="cancel" type="submit">取消</button>
+          <button class="btn primary" id="adminLoginBtn" type="button">进入</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="editorDialog">
+      <form class="modal glass" id="editorForm">
+        <h3 id="editorTitle">编辑</h3>
+        <div id="editorFields"></div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="editorCancel" type="button">取消</button>
+          <button class="btn primary" type="submit">保存</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast-host" id="toastHost" aria-live="polite"></div>
+
+    <script src="js/app.js?v=20260817" type="module"></script>
+    <noscript>需要浏览器开启 JavaScript 才能看项目墙和弹幕。</noscript>
+  </body>
+</html>

@@ -1,0 +1,119 @@
+{
+  "profile": {
+    "name": "Chase Xie",
+    "kicker": "Vibe Coding Hub",
+    "title": "把已上线的工具放在一张桌上",
+    "bio": "我用 vibe-coding 做市场工具和学习产品。这里是个人导航：一键跳到公网站点，下面留下我最近的观点和盯盘笔记。访客可以发弹幕，改不了正文。",
+    "avatar": "assets/avatar.jpg"
+  },
+  "socials": [
+    {
+      "id": "github",
+      "label": "GitHub",
+      "handle": "shangchaovo",
+      "href": "https://github.com/shangchaovo",
+      "kind": "link"
+    },
+    {
+      "id": "email",
+      "label": "邮箱",
+      "handle": "shangchaoxie888@gmail.com",
+      "href": "mailto:shangchaoxie888@gmail.com",
+      "kind": "link"
+    },
+    {
+      "id": "bmc",
+      "label": "Buy Me a Coffee",
+      "handle": "chasetse",
+      "href": "https://buymeacoffee.com/chasetse",
+      "kind": "link"
+    },
+    {
+      "id": "x",
+      "label": "X",
+      "handle": "",
+      "href": "",
+      "kind": "soon"
+    },
+    {
+      "id": "telegram",
+      "label": "Telegram",
+      "handle": "",
+      "href": "",
+      "kind": "soon"
+    }
+  ],
+  "jumps": [
+    {
+      "id": "wordpaper",
+      "name": "WordPaper",
+      "blurb": "把单词做成壁纸",
+      "href": "https://wordpaper.pages.dev/"
+    },
+    {
+      "id": "terminal",
+      "name": "加密终端",
+      "blurb": "费率 / Meme / 清算 / 期权",
+      "href": "https://crypto-funding-arbitrage.pages.dev/"
+    },
+    {
+      "id": "research",
+      "name": "投行研报",
+      "blurb": "评级与目标价追踪",
+      "href": "https://fresearch.cc.cd/"
+    },
+    {
+      "id": "resume",
+      "name": "简历工坊",
+      "blurb": "校招简历在线排版",
+      "href": "https://resume-5lv.pages.dev/"
+    }
+  ],
+  "projects": [
+    {
+      "id": "wordpaper",
+      "name": "WordPaper",
+      "tag": "学习",
+      "summary": "每日单词 + 艾宾浩斯复习做成手机 / 电脑壁纸，支持多用户账号与 Liquid Glass 界面。",
+      "live": "https://wordpaper.pages.dev/",
+      "github": "https://github.com/shangchaovo/daily-wallpaper",
+      "status": "live"
+    },
+    {
+      "id": "terminal",
+      "name": "加密终端",
+      "tag": "加密",
+      "summary": "跨所资金费率套利、Meme 异动、清算热图与期权 Wall，统一在一个深色终端里。",
+      "live": "https://crypto-funding-arbitrage.pages.dev/",
+      "github": "https://github.com/shangchaovo/crypto-funding-arbitrage",
+      "status": "live"
+    },
+    {
+      "id": "research",
+      "name": "外资投行研报",
+      "tag": "股票",
+      "summary": "追踪 UBS / Citi / MS / JPM 等对 AI 算力主线的评级与目标价，多源抓取 + LLM 摘要。",
+      "live": "https://fresearch.cc.cd/",
+      "github": "https://github.com/shangchaovo/ib-research",
+      "status": "live"
+    },
+    {
+      "id": "resume",
+      "name": "简历工坊",
+      "tag": "工具",
+      "summary": "面向校招的纯前端简历编辑器：左表单右 A4，导出矢量 PDF，数据只存在你的浏览器。",
+      "live": "https://resume-5lv.pages.dev/",
+      "github": "https://github.com/shangchaovo/resume-site",
+      "status": "live"
+    },
+    {
+      "id": "options",
+      "name": "期权集中押注",
+      "tag": "加密",
+      "summary": "BTC / ETH 行权价持仓分布、Max Pain 与大额押注区域。公网 Pages 目前不稳定，源码可本机跑。",
+      "live": "https://crypto-options-analyzer.pages.dev/",
+      "github": "https://github.com/shangchaovo/crypto-options-analyzer",
+      "status": "degraded"
+    }
+  ]
+}
