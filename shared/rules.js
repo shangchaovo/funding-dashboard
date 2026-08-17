@@ -29,9 +29,9 @@ function blocked(value) {
 function assertDanmaku({ nick, text }) {
   const safeNick = clip(nick, NICK_MAX);
   const safeText = clip(text, DANMAKU_MAX);
-  if (!safeText) throw Object.assign(new Error("弹幕不能为空"), { status: 400 });
+  if (!safeText) throw Object.assign(new Error("先写点什么再发"), { status: 400 });
   if (blocked(safeText) || blocked(safeNick)) {
-    throw Object.assign(new Error("这条弹幕发不出去"), { status: 400 });
+    throw Object.assign(new Error("这条发不出去，换个说法试试"), { status: 400 });
   }
   return { nick: safeNick, text: safeText };
 }

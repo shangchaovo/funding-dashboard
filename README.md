@@ -39,4 +39,4 @@ bash scripts/deploy-pages.sh
 
 ## 联系方式
 
-写在 `data/site.json` 的 `socials` 里。现在公开的是 GitHub、邮箱和 Buy Me a Coffee。X / Telegram 留了空位，有账号把 `href` 填上即可。
+写在 `data/site.json` 的 `socials` 里。现在公开的是 GitHub、邮箱、X（@johny_xie）和 Buy Me a Coffee。没有的渠道不要占空位。

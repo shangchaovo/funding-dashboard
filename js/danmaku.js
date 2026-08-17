@@ -23,7 +23,7 @@ async function pull(instant) {
     const data = await api("/api/danmaku");
     for (const item of data.items || []) spawn(item, { instant });
   } catch (error) {
-    if (instant) toast("弹幕暂时读不到，仍可浏览页面。");
+    if (instant) toast("招呼暂时发不出去，页面还能看。");
   }
 }
 
@@ -42,7 +42,7 @@ export function initDanmaku() {
       document.getElementById("danmakuText").value = "";
       spawn(saved.item);
     } catch (error) {
-      toast(error.message || "弹幕没发出去");
+      toast(error.message || "没发出去，稍后再试");
     }
   });
   pull(true);

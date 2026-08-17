@@ -54,3 +54,13 @@ export function formatDay(iso) {
 export function uid(prefix) {
   return `${prefix}_${Math.random().toString(36).slice(2, 8)}${Date.now().toString(36).slice(-4)}`;
 }
+
+export function icon(name, cls = "ic") {
+  const fill = name === "github" ? " ic-fill" : "";
+  return `<svg class="${cls}${fill}" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
+}
+
+export function appIcon(name, size = 40) {
+  const safe = /^[a-z0-9-]+$/i.test(name || "") ? name : "github";
+  return `<img class="app-icon" src="assets/icons/${safe}.svg" alt="" width="${size}" height="${size}">`;
+}

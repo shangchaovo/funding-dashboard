@@ -50,7 +50,7 @@ async function saveWatchlist(watchlist) {
 }
 
 function bindAvatarUnlock() {
-  const avatar = document.getElementById("heroAvatar");
+  const avatar = document.getElementById("heroAvatarBtn") || document.getElementById("heroAvatar");
   let taps = [];
   const maybeOpen = () => {
     const now = Date.now();
