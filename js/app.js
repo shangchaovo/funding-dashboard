@@ -73,40 +73,6 @@ function renderHero() {
     <div class="stat"><b>${noteCount}</b><span>条观点</span></div>
     <div class="stat"><b>${stockCount}</b><span>只在盯</span></div>
   `;
-  const latest = (state.notes.items || [])[0];
-  const sector = (state.watchlist.sectors || [])[0];
-  document.getElementById("featuredJumps").innerHTML = [
-    latest ? `
-      <a class="feature glass" data-tint="violet" href="${esc(noteHref(latest))}">
-        <span class="well app">${appIcon("notes", 52)}</span>
-        <span class="feature-copy">
-          <strong>${esc(latest.title)}</strong>
-          <span>最近在想 · ${esc(formatDay(latest.createdAt))}</span>
-        </span>
-        ${icon("arrow", "ic ic-arrow")}
-      </a>
-    ` : `
-      <a class="feature glass" data-tint="violet" href="#notes">
-        <span class="well app">${appIcon("notes", 52)}</span>
-        <span class="feature-copy"><strong>最近在想</strong><span>过几天再来看看</span></span>
-      </a>
-    `,
-    sector ? `
-      <a class="feature glass" data-tint="amber" href="#watch">
-        <span class="well app">${appIcon("watch", 52)}</span>
-        <span class="feature-copy">
-          <strong>${esc(sector.name)}</strong>
-          <span>最近在盯 · ${(sector.stocks || []).length} 只</span>
-        </span>
-        ${icon("arrow", "ic ic-arrow")}
-      </a>
-    ` : `
-      <a class="feature glass" data-tint="amber" href="#watch">
-        <span class="well app">${appIcon("watch", 52)}</span>
-        <span class="feature-copy"><strong>最近在盯</strong><span>这阵子没盯什么票</span></span>
-      </a>
-    `,
-  ].join("");
 }
 
 function renderSites() {
