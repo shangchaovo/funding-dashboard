@@ -1,0 +1,44 @@
+{
+  "disclaimer": "个人记录，用来写我为什么盯这条线。不是投资建议，也不构成任何推荐。",
+  "updatedAt": "2026-08-17T00:00:00.000Z",
+  "sectors": [
+    {
+      "id": "s_ai",
+      "name": "AI 算力",
+      "thesis": "训练与推理的资本开支还在，GPU、网络、代工是我最近盯得最紧的一条主线。数字会变，逻辑先写在这里。",
+      "stocks": [
+        {
+          "id": "nvda",
+          "symbol": "NVDA",
+          "name": "NVIDIA",
+          "reason": "CUDA 生态与数据中心 GPU 仍是主轴。我更关心出货节奏和客户资本开支，而不是单日涨跌。"
+        },
+        {
+          "id": "avgo",
+          "symbol": "AVGO",
+          "name": "Broadcom",
+          "reason": "自定义加速芯片和网络交换，吃的是同一笔 AI 开支，客户集中度值得单独记账。"
+        },
+        {
+          "id": "tsm",
+          "symbol": "TSM",
+          "name": "台积电",
+          "reason": "先进制程几乎是所有 AI 芯片的共同瓶颈。产能与 CoWoS 比叙事更硬。"
+        }
+      ]
+    },
+    {
+      "id": "s_mem",
+      "name": "存储 / HBM",
+      "thesis": "HBM 供给紧，存储周期和 AI 需求叠在一起。跟踪爬坡比跟踪标题重要。",
+      "stocks": [
+        {
+          "id": "mu",
+          "symbol": "MU",
+          "name": "Micron",
+          "reason": "HBM 与 DRAM 涨价逻辑都在，但要看产能什么时候真的出来。"
+        }
+      ]
+    }
+  ]
+}
