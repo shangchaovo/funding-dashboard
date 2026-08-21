@@ -28,11 +28,17 @@ node server.js         # http://127.0.0.1:8777
 
 ## 公网（Cloudflare Pages）
 
+生产地址：`https://chaestblog.pages.dev/`。
+
+**云端自动发（推荐）**：在 GitHub 仓库 Settings → Secrets and variables → Actions 添加 `CLOUDFLARE_API_TOKEN`（Cloudflare Pages 编辑权限）。之后推送到 `main` 或本仓库的工作分支，GitHub Actions 会直接发生产，不用开本机。
+
+本机仍可手动发：
+
 ```bash
 bash scripts/deploy-pages.sh
 ```
 
-项目名默认 `chaestblog`，脚本默认发生产分支 `main`，上线后地址是 `https://chaestblog.pages.dev/`。自定义域名 `chaestblog.is-a.dev` 需要：
+自定义域名 `chaestblog.is-a.dev` 需要：
 
 1. 这份 Pages 部署成功
 2. is-a.dev 的注册 PR 合并（CNAME → `chaestblog.pages.dev`）
