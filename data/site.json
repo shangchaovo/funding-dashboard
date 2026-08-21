@@ -99,6 +99,17 @@
       "status": "live"
     },
     {
+      "id": "pulse",
+      "icon": "pulse",
+      "tint": "blue",
+      "name": "Predict Pulse",
+      "tag": "预测",
+      "summary": "Signal Harbor 的预测市场情报：聚合 Polymarket、Kalshi、Manifold 与 Predict.fun，看每日热点、聪明钱和盘口情绪。",
+      "live": "https://predict-pulse.signal-harbor.workers.dev/?view=sentiment",
+      "shot": "assets/shots/pulse.jpg",
+      "status": "live"
+    },
+    {
       "id": "resume",
       "icon": "file",
       "tint": "rose",

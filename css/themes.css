@@ -94,6 +94,7 @@
 :root[data-theme="ink"] [data-tint="amber"] { --tint: #e2b05c; }
 :root[data-theme="ink"] [data-tint="rose"] { --tint: #f0a0ae; }
 :root[data-theme="ink"] [data-tint="gold"] { --tint: #e6c66a; }
+:root[data-theme="ink"] [data-tint="blue"] { --tint: #7eb0ff; }
 
 html, body { min-height: 100%; }
 

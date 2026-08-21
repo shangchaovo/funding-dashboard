@@ -103,6 +103,135 @@ function renderSites() {
       </div>
     </article>`;
   }).join("");
+  renderReel(items);
+}
+
+let reelTimer = 0;
+let reelBound = false;
+
+function reduceMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function reelSlideNodes() {
+  return [...document.querySelectorAll("#siteReelTrack .reel-slide")];
+}
+
+function reelIndex() {
+  const track = document.getElementById("siteReelTrack");
+  const slides = reelSlideNodes();
+  if (!track || !slides.length) return 0;
+  const mid = track.scrollLeft + track.clientWidth / 2;
+  let best = 0;
+  let bestDist = Infinity;
+  slides.forEach((slide, index) => {
+    const center = slide.offsetLeft + slide.offsetWidth / 2;
+    const dist = Math.abs(center - mid);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = index;
+    }
+  });
+  return best;
+}
+
+function updateReelDots() {
+  const current = reelIndex();
+  for (const btn of document.querySelectorAll("[data-reel-dot]")) {
+    btn.setAttribute("aria-current", String(Number(btn.dataset.reelDot) === current));
+  }
+}
+
+function scrollReelTo(index) {
+  const track = document.getElementById("siteReelTrack");
+  const slides = reelSlideNodes();
+  if (!track || !slides.length) return;
+  const next = ((index % slides.length) + slides.length) % slides.length;
+  const slide = slides[next];
+  const left = slide.offsetLeft - (track.clientWidth - slide.offsetWidth) / 2;
+  track.scrollTo({ left, behavior: reduceMotion() ? "auto" : "smooth" });
+}
+
+function stopReel() {
+  if (reelTimer) {
+    window.clearInterval(reelTimer);
+    reelTimer = 0;
+  }
+}
+
+function startReel() {
+  stopReel();
+  if (reduceMotion() || reelSlideNodes().length < 2) return;
+  reelTimer = window.setInterval(() => {
+    if (document.hidden) return;
+    const host = document.getElementById("siteReel");
+    if (host?.matches(":hover")) return;
+    scrollReelTo(reelIndex() + 1);
+  }, 4200);
+}
+
+function renderReel(items) {
+  const host = document.getElementById("siteReel");
+  const track = document.getElementById("siteReelTrack");
+  const dots = document.getElementById("siteReelDots");
+  if (!host || !track) return;
+  const slides = (items || liveProjects()).filter((item) => item.shot && item.live);
+  host.hidden = slides.length < 2;
+  if (slides.length < 2) {
+    track.innerHTML = "";
+    if (dots) dots.innerHTML = "";
+    stopReel();
+    return;
+  }
+  track.innerHTML = slides.map((item) => `
+    <a class="reel-slide glass" data-tint="${esc(item.tint || "blue")}" href="${esc(item.live)}" target="_blank" rel="noopener">
+      <span class="shot">${shotImg(item.shot)}</span>
+      <span class="reel-caption">
+        <span class="well app">${appIcon(item.icon || "book", 40)}</span>
+        <span class="reel-copy">
+          <strong>${esc(item.name)}</strong>
+          <span>${esc(item.tag)} · ${esc(item.summary)}</span>
+        </span>
+      </span>
+    </a>
+  `).join("");
+  if (dots) {
+    dots.innerHTML = slides.map((_, index) => (
+      `<button class="reel-dot" type="button" data-reel-dot="${index}" aria-label="第 ${index + 1} 个站点"></button>`
+    )).join("");
+  }
+  updateReelDots();
+  startReel();
+}
+
+function bindSiteReel() {
+  if (reelBound) return;
+  const host = document.getElementById("siteReel");
+  const track = document.getElementById("siteReelTrack");
+  if (!host || !track) return;
+  reelBound = true;
+  host.addEventListener("click", (event) => {
+    const dir = event.target.closest("[data-reel]")?.dataset.reel;
+    if (dir === "prev") {
+      event.preventDefault();
+      scrollReelTo(reelIndex() - 1);
+    } else if (dir === "next") {
+      event.preventDefault();
+      scrollReelTo(reelIndex() + 1);
+    }
+    const dot = event.target.closest("[data-reel-dot]");
+    if (dot) {
+      event.preventDefault();
+      scrollReelTo(Number(dot.dataset.reelDot));
+    }
+  });
+  track.addEventListener("scroll", () => updateReelDots(), { passive: true });
+  host.addEventListener("pointerenter", stopReel);
+  host.addEventListener("pointerleave", startReel);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopReel();
+    else startReel();
+  });
 }
 
 function renderNotes() {
@@ -197,6 +326,7 @@ async function boot() {
   bindGlassLight();
   await loadContent();
   render();
+  bindSiteReel();
   try {
     const session = await api("/api/session");
     setAdmin(Boolean(session.admin));
