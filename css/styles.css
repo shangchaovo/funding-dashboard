@@ -1175,3 +1175,69 @@ body.page .nav {
 .page-doc .disclaimer {
   margin-top: 28px;
 }
+
+/* ============================================================
+   在线站点 · 自动滚动展示(横向跑马灯)
+   默认保持原 grid;仅当 JS 判定可滚动时给 body 加 .marquee-on 才启用。
+   无 JS / prefers-reduced-motion / 管理态 都回退为普通 grid。
+   ============================================================ */
+.board-marquee { position: relative; }
+
+body.marquee-on .board-marquee {
+  overflow: hidden;
+  padding-block: 10px; /* 给 hover 上移/阴影留点纵向空间,避免被裁掉 */
+  /* 两侧渐隐,提示“后面还有” */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+
+/* 卡片排成一行、宽度按需,整轨做无缝位移动画 */
+body.marquee-on .project-board {
+  display: flex;
+  gap: 0;
+  width: max-content;
+  animation: board-marquee var(--board-dur, 46s) linear infinite;
+  will-change: transform;
+}
+
+/* 统一卡片宽度;用 margin 当间距(而不是 gap),保证 -50% 位移正好是一整组 */
+body.marquee-on .project-board .card {
+  flex: 0 0 auto;
+  width: min(80vw, 360px);
+  margin-right: 14px;
+}
+
+/* 特色卡(predict-pulse 全宽卡)在跑马灯里退化为普通竖排卡 */
+body.marquee-on .project-board .card[data-id="predict-pulse"] {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 18px;
+}
+body.marquee-on .project-board .card[data-id="predict-pulse"] > :not(.shot) { grid-column: auto; }
+body.marquee-on .project-board .card[data-id="predict-pulse"] .shot {
+  grid-column: auto;
+  grid-row: auto;
+  min-height: 0;
+  aspect-ratio: 16 / 10;
+  border-right: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line-strong) 52%, transparent);
+}
+body.marquee-on .project-board .card[data-id="predict-pulse"] .card-top { align-self: auto; padding-top: 0; }
+body.marquee-on .project-board .card[data-id="predict-pulse"] h3 { margin-top: 0; font-size: 22px; }
+body.marquee-on .project-board .card[data-id="predict-pulse"] > p { align-self: auto; font-size: 14px; }
+body.marquee-on .project-board .card[data-id="predict-pulse"] .card-links { align-self: auto; margin-bottom: 0; }
+
+/* 悬停 / 键盘聚焦时暂停,方便看清和点开 */
+body.marquee-on .board-marquee:hover .project-board,
+body.marquee-on .board-marquee:focus-within .project-board {
+  animation-play-state: paused;
+}
+
+@keyframes board-marquee {
+  to { transform: translateX(-50%); }
+}
+
+/* 兜底:减少动态时绝不滚动(JS 侧已拦截,这里再保险一层) */
+@media (prefers-reduced-motion: reduce) {
+  body.marquee-on .project-board { animation: none; }
+}

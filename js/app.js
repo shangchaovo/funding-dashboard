@@ -86,16 +86,16 @@ function renderHero() {
   `;
 }
 
-function renderSites() {
-  const items = visibleProjects();
-  setSectionVisible("siteGrid", items.length > 0);
-  document.getElementById("siteGrid").innerHTML = items.map((item) => {
-    const github = item.github && item.githubPublic !== false
-      ? `<a class="btn" href="${esc(item.github)}" target="_blank" rel="noopener">${appIcon("github", 18)} GitHub</a>`
-      : "";
-    return `
-    <article class="card glass" data-id="${esc(item.id)}" data-tint="${esc(item.tint || "blue")}">
-      ${item.shot && item.live ? `<a class="shot" href="${esc(item.live)}" target="_blank" rel="noopener">${shotImg(item.shot, `${item.name} 页面截图`)}</a>` : ""}
+function siteCardHtml(item, clone) {
+  // clone=true 的是跑马灯里用于无缝拼接的副本:对读屏隐藏、不进 Tab 序
+  const tab = clone ? ' tabindex="-1"' : "";
+  const hidden = clone ? ' aria-hidden="true"' : "";
+  const github = item.github && item.githubPublic !== false
+    ? `<a class="btn" href="${esc(item.github)}" target="_blank" rel="noopener"${tab}>${appIcon("github", 18)} GitHub</a>`
+    : "";
+  return `
+    <article class="card glass" data-id="${esc(item.id)}" data-tint="${esc(item.tint || "blue")}"${hidden}>
+      ${item.shot && item.live ? `<a class="shot" href="${esc(item.live)}" target="_blank" rel="noopener"${tab}>${shotImg(item.shot, `${item.name} 页面截图`)}</a>` : ""}
       <div class="card-top">
         <span class="well app">${appIcon(item.icon || "book", 46)}</span>
         <span class="pill ${item.status === "live" ? "live" : "degraded"}">
@@ -110,17 +110,40 @@ function renderSites() {
       <p>${esc(item.summary)}</p>
       ${item.updatedAt ? `<p class="project-updated">更新于 ${esc(formatDay(item.updatedAt))}</p>` : ""}
       <div class="card-links">
-        ${item.live ? `<a class="btn primary" href="${esc(item.live)}" target="_blank" rel="noopener">${icon("arrow")} 打开</a>` : ""}
+        ${item.live ? `<a class="btn primary" href="${esc(item.live)}" target="_blank" rel="noopener"${tab}>${icon("arrow")} 打开</a>` : ""}
         ${github}
       </div>
       <div class="row-actions project-actions">
-        <button class="btn" type="button" data-edit-project="${esc(item.id)}">${icon("edit")} 改项目</button>
-        <button class="btn" type="button" data-move-project="${esc(item.id)}:-1" aria-label="向前移动">↑</button>
-        <button class="btn" type="button" data-move-project="${esc(item.id)}:1" aria-label="向后移动">↓</button>
-        <button class="btn danger" type="button" data-del-project="${esc(item.id)}">${icon("trash")} 删除</button>
+        <button class="btn" type="button" data-edit-project="${esc(item.id)}"${tab}>${icon("edit")} 改项目</button>
+        <button class="btn" type="button" data-move-project="${esc(item.id)}:-1" aria-label="向前移动"${tab}>↑</button>
+        <button class="btn" type="button" data-move-project="${esc(item.id)}:1" aria-label="向后移动"${tab}>↓</button>
+        <button class="btn danger" type="button" data-del-project="${esc(item.id)}"${tab}>${icon("trash")} 删除</button>
       </div>
     </article>`;
-  }).join("");
+}
+
+function renderSites() {
+  const items = visibleProjects();
+  setSectionVisible("siteGrid", items.length > 0);
+  const track = document.getElementById("siteGrid");
+  if (!track) return;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // 卡片够多才横滚;管理态(要用编辑按钮)/减少动态 退回普通 grid
+  const wantMarquee = !state.admin && !reduceMotion && items.length >= 4;
+  const build = (clone) => items.map((item) => siteCardHtml(item, clone)).join("");
+  // 无缝循环的关键:轨道里放两组相同卡片,动画平移 -50% 正好一整组
+  track.innerHTML = wantMarquee ? build(false) + build(true) : build(false);
+  document.body.classList.toggle("marquee-on", wantMarquee);
+  if (wantMarquee) {
+    // 按轨道半宽换算时长,保持滚动速度恒定(约 65px/s)
+    requestAnimationFrame(() => {
+      const half = track.scrollWidth / 2;
+      const dur = Math.min(90, Math.max(22, Math.round(half / 65)));
+      track.style.setProperty("--board-dur", `${dur}s`);
+    });
+  } else {
+    track.style.removeProperty("--board-dur");
+  }
 }
 
 function renderNotes() {
