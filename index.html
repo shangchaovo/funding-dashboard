@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chase Xie · 市场工具与学习产品导航</title>
-    <meta name="description" content="独立开发者 Chase Xie 的个人导航：WordPaper、加密终端、外资研报、交易日报和校招简历工坊，以及最近在盯的 AI 算力与 HBM。" />
+    <meta name="description" content="独立开发者 Chase Xie 的个人导航：Predict Pulse、Signal Harbor、WordPaper、加密终端、外资研报、交易日报和校招简历工坊，以及最近在盯的 AI 算力与 HBM。" />
     <meta name="google-site-verification" content="O95cw5EyVnewTnY-gCXj8kBVqnA2D88TB6CyO-TnIzk" />
     <link rel="canonical" href="https://chaestblog.pages.dev/" />
     <meta property="og:type" content="website" />
@@ -22,8 +22,8 @@
     <meta name="twitter:description" content="独立开发者。把已上线的市场工具和学习产品放在一页，并写下最近在盯的 AI 算力与 HBM。" />
     <meta name="twitter:image" content="https://chaestblog.pages.dev/assets/og.jpg" />
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
-    <link rel="stylesheet" href="/css/themes.css?v=20260818b" />
-    <link rel="stylesheet" href="/css/styles.css?v=20260818b" />
+    <link rel="stylesheet" href="/css/themes.css?v=20260820b" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260820b" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -44,7 +44,7 @@
             "url": "https://chaestblog.pages.dev/",
             "image": "https://chaestblog.pages.dev/assets/avatar.jpg",
             "jobTitle": "独立开发者",
-            "description": "做市场工具和学习产品，公开 WordPaper、加密终端、外资研报、交易日报和校招简历工坊。",
+            "description": "做市场工具和学习产品，公开 Predict Pulse、Signal Harbor、WordPaper、加密终端、外资研报、交易日报和校招简历工坊。",
             "email": "mailto:shangchaoxie888@gmail.com",
             "sameAs": [
               "https://github.com/shangchaovo",
@@ -104,7 +104,7 @@
 
     <header class="nav glass">
       <a class="brand" href="/">
-        <img class="brand-avatar" src="/assets/avatar.jpg" alt="" width="40" height="40" />
+        <img class="brand-avatar" src="/assets/avatar.jpg" alt="Chase Xie" width="40" height="40" />
         <span class="brand-copy">
           <strong>Chase Xie</strong>
           <small>Personal Hub</small>
@@ -117,6 +117,9 @@
         <a href="/about/"><svg class="ic"><use href="#i-user"></use></svg>关于</a>
         <a href="#contact"><svg class="ic"><use href="#i-chat"></use></svg>联系</a>
       </nav>
+      <button class="admin-entry" id="openAdminBtn" type="button" aria-controls="adminDialog">
+        <svg class="ic"><use href="#i-lock"></use></svg><span>管理</span>
+      </button>
       <div class="theme-switch" role="radiogroup" aria-label="主题">
         <button class="theme-btn" type="button" data-theme="liquid" aria-pressed="true" title="Liquid Glass">
           <i class="orb orb-liquid" aria-hidden="true"></i><span>玻璃</span>
@@ -156,7 +159,7 @@
             <a class="btn" href="mailto:shangchaoxie888@gmail.com">写信</a>
           </div>
           <div class="stat-row" id="statRow">
-            <div class="stat"><b>5</b><span>在线站点</span></div>
+            <div class="stat"><b>7</b><span>在线站点</span></div>
             <div class="stat"><b>1</b><span>条观点</span></div>
             <div class="stat"><b>4</b><span>只在盯</span></div>
           </div>
@@ -171,9 +174,43 @@
           </div>
             <p class="hint">点开就是正在跑的站点</p>
         </div>
+        <div class="admin-only editor-bar">
+          <button class="btn primary" id="addProjectBtn" type="button"><svg class="ic"><use href="#i-plus"></use></svg>添加项目</button>
+          <span class="editor-hint">可修改介绍、排序、上下线，并上传真实页面截图</span>
+        </div>
         <div class="project-board" id="siteGrid">
+          <article class="card glass" data-id="predict-pulse" data-tint="green">
+            <a class="shot" href="https://predict-pulse.signal-harbor.workers.dev/?view=sentiment" target="_blank" rel="noopener"><img src="/assets/shots/predict-pulse.jpg" alt="Predict Pulse 预测市场观点与情绪页面截图" loading="lazy" decoding="async"></a>
+            <div class="card-top">
+              <span class="well app"><img class="app-icon" src="/assets/icons/pulse.svg" alt="" width="46" height="46"></span>
+              <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
+            </div>
+            <div>
+              <span class="pill">预测市场</span>
+              <h3>Predict Pulse</h3>
+            </div>
+            <p>聚合预测市场的每日热点与盘口变化，追踪聪明钱持仓、套利机会和带来源权重的观点情绪；每条信号都保留原文，方便回到市场核验。</p>
+            <div class="card-links">
+              <a class="btn primary" href="https://predict-pulse.signal-harbor.workers.dev/?view=sentiment" target="_blank" rel="noopener">打开</a>
+            </div>
+          </article>
+          <article class="card glass" data-tint="cyan">
+            <a class="shot" href="https://signal-harbor-terminal.signal-harbor.workers.dev/#overview" target="_blank" rel="noopener"><img src="/assets/shots/signal-harbor.jpg" alt="Signal Harbor 美股研究终端页面截图" loading="lazy" decoding="async"></a>
+            <div class="card-top">
+              <span class="well app"><img class="app-icon" src="/assets/icons/chart.svg" alt="" width="46" height="46"></span>
+              <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
+            </div>
+            <div>
+              <span class="pill">美股研究</span>
+              <h3>Signal Harbor</h3>
+            </div>
+            <p>聚合美股 AI、半导体与云计算的新闻情绪、分析师观点和 OCC 官方期权持仓，集中查看 Put/Call Wall、Max Pain 与可核验来源。</p>
+            <div class="card-links">
+              <a class="btn primary" href="https://signal-harbor-terminal.signal-harbor.workers.dev/#overview" target="_blank" rel="noopener">打开</a>
+            </div>
+          </article>
           <article class="card glass" data-tint="violet">
-            <a class="shot" href="https://wordpaper.pages.dev/" target="_blank" rel="noopener"><img src="/assets/shots/wordpaper.jpg" alt=""></a>
+            <a class="shot" href="https://wordpaper.pages.dev/" target="_blank" rel="noopener"><img src="/assets/shots/wordpaper.jpg" alt="WordPaper 单词壁纸页面截图" loading="lazy" decoding="async"></a>
             <div class="card-top">
               <span class="well app"><img class="app-icon" src="/assets/icons/book.svg" alt="" width="46" height="46"></span>
               <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
@@ -189,7 +226,7 @@
             </div>
           </article>
           <article class="card glass" data-tint="cyan">
-            <a class="shot" href="https://crypto-funding-arbitrage.pages.dev/" target="_blank" rel="noopener"><img src="/assets/shots/terminal.jpg" alt=""></a>
+            <a class="shot" href="https://crypto-funding-arbitrage.pages.dev/" target="_blank" rel="noopener"><img src="/assets/shots/terminal.jpg" alt="加密终端页面截图" loading="lazy" decoding="async"></a>
             <div class="card-top">
               <span class="well app"><img class="app-icon" src="/assets/icons/terminal.svg" alt="" width="46" height="46"></span>
               <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
@@ -204,7 +241,7 @@
             </div>
           </article>
           <article class="card glass" data-tint="amber">
-            <a class="shot" href="https://fresearch.cc.cd/" target="_blank" rel="noopener"><img src="/assets/shots/research.jpg" alt=""></a>
+            <a class="shot" href="https://fresearch.cc.cd/" target="_blank" rel="noopener"><img src="/assets/shots/research.jpg" alt="外资投行研报页面截图" loading="lazy" decoding="async"></a>
             <div class="card-top">
               <span class="well app"><img class="app-icon" src="/assets/icons/chart.svg" alt="" width="46" height="46"></span>
               <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
@@ -220,7 +257,7 @@
             </div>
           </article>
           <article class="card glass" data-tint="gold">
-            <a class="shot" href="https://dailytrade.cc.cd/" target="_blank" rel="noopener"><img src="/assets/shots/dailytrade.jpg" alt=""></a>
+            <a class="shot" href="https://dailytrade.cc.cd/" target="_blank" rel="noopener"><img src="/assets/shots/dailytrade.jpg" alt="交易每日报告页面截图" loading="lazy" decoding="async"></a>
             <div class="card-top">
               <span class="well app"><img class="app-icon" src="/assets/icons/candles.svg" alt="" width="46" height="46"></span>
               <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
@@ -235,7 +272,7 @@
             </div>
           </article>
           <article class="card glass" data-tint="rose">
-            <a class="shot" href="https://resume-5lv.pages.dev/" target="_blank" rel="noopener"><img src="/assets/shots/resume.jpg" alt=""></a>
+            <a class="shot" href="https://resume-5lv.pages.dev/" target="_blank" rel="noopener"><img src="/assets/shots/resume.jpg" alt="简历工坊页面截图" loading="lazy" decoding="async"></a>
             <div class="card-top">
               <span class="well app"><img class="app-icon" src="/assets/icons/file.svg" alt="" width="46" height="46"></span>
               <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
@@ -350,22 +387,27 @@
       </section>
     </main>
 
-    <form class="dock glass" id="danmakuForm">
-      <span class="dock-mark" aria-hidden="true"><img class="app-icon" src="/assets/icons/chat.svg" alt="" width="42" height="42"></span>
-      <label class="sr-only" for="danmakuNick">昵称</label>
-      <input class="nick" id="danmakuNick" name="nick" maxlength="12" placeholder="路过" autocomplete="nickname" />
-      <label class="sr-only" for="danmakuText">打个招呼</label>
-      <input id="danmakuText" name="text" maxlength="36" placeholder="路过的话，打个招呼…" required />
-      <button class="btn primary" type="submit"><svg class="ic"><use href="#i-send"></use></svg>发送</button>
-      <button class="btn ghost admin-only" id="clearDanmakuBtn" type="button">清空</button>
-      <button class="btn ghost admin-only" id="logoutBtn" type="button">退出</button>
+    <form class="dock glass is-collapsed" id="danmakuForm">
+      <button class="dock-toggle" id="toggleDockBtn" type="button" aria-expanded="false" aria-controls="dockFields">
+        <span class="dock-mark" aria-hidden="true"><img class="app-icon" src="/assets/icons/chat.svg" alt="" width="42" height="42"></span>
+        <span>留言</span>
+      </button>
+      <div class="dock-fields" id="dockFields">
+        <label class="sr-only" for="danmakuNick">昵称</label>
+        <input class="nick" id="danmakuNick" name="nick" maxlength="12" placeholder="路过" autocomplete="nickname" />
+        <label class="sr-only" for="danmakuText">打个招呼</label>
+        <input id="danmakuText" name="text" maxlength="36" placeholder="路过的话，打个招呼…" required />
+        <button class="btn primary" type="submit"><svg class="ic"><use href="#i-send"></use></svg>发送</button>
+        <button class="btn ghost" id="toggleDanmakuViewBtn" type="button" aria-pressed="false">显示弹幕</button>
+        <button class="btn ghost" id="closeDockBtn" type="button">收起</button>
+      </div>
     </form>
 
     <dialog id="adminDialog">
       <form class="modal glass" id="adminForm" method="dialog">
         <p class="kicker"><svg class="ic"><use href="#i-lock"></use></svg> Author</p>
         <h3>作者入口</h3>
-        <p>连点头像五次，或在网址后加 <code>?edit=1</code>。</p>
+        <p>输入管理口令后，即可管理项目、发布观点、更新关注板块与恢复历史版本。</p>
         <label class="field">
           <span>管理口令</span>
           <input id="adminToken" type="password" name="token" autocomplete="current-password" />
@@ -375,6 +417,38 @@
           <button class="btn primary" id="adminLoginBtn" type="button">进入</button>
         </div>
       </form>
+    </dialog>
+
+    <dialog id="adminPanelDialog">
+      <div class="modal glass admin-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="kicker"><svg class="ic"><use href="#i-apps"></use></svg> Content Studio</p>
+            <h3>内容工作台</h3>
+            <p>所有保存都会自动保留最近 10 个版本。</p>
+          </div>
+          <button class="btn ghost" id="adminPanelClose" type="button">关闭</button>
+        </div>
+        <div class="panel-grid">
+          <button class="panel-action" id="panelAddProjectBtn" type="button"><strong>添加项目</strong><span>介绍、链接、排序与截图</span></button>
+          <button class="panel-action" id="panelAddNoteBtn" type="button"><strong>发布观点</strong><span>标题、正文与文章路径</span></button>
+          <button class="panel-action" id="panelAddSectorBtn" type="button"><strong>添加板块</strong><span>维护关注逻辑与个股</span></button>
+        </div>
+        <div class="panel-tools">
+          <p class="panel-label">数据安全</p>
+          <div class="modal-actions">
+            <button class="btn" id="downloadBackupBtn" type="button">下载完整备份</button>
+            <button class="btn" id="restoreDefaultsBtn" type="button">恢复默认观点与关注</button>
+            <button class="btn ghost" id="undoProjectsBtn" type="button">撤销项目保存</button>
+            <button class="btn ghost" id="undoNotesBtn" type="button">撤销观点保存</button>
+            <button class="btn ghost" id="undoWatchlistBtn" type="button">撤销关注保存</button>
+          </div>
+        </div>
+        <div class="panel-footer">
+          <button class="btn danger" id="clearDanmakuBtn" type="button">清空留言</button>
+          <button class="btn ghost" id="logoutBtn" type="button">退出管理</button>
+        </div>
+      </div>
     </dialog>
 
     <dialog id="editorDialog">
@@ -389,7 +463,7 @@
     </dialog>
 
     <div class="toast-host" id="toastHost" aria-live="polite"></div>
-    <script src="/js/app.js?v=20260818b" type="module"></script>
+    <script src="/js/app.js" type="module"></script>
     <noscript>
       Chase Xie 是独立开发者。站点、观点和盯盘不需要 JavaScript 也能读。
       关于：/about/ · HBM 笔记：/notes/hbm-supply/

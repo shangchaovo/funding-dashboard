@@ -6,6 +6,8 @@ const SECTOR_NAME_MAX = 40;
 const TEXT_MAX = 800;
 const DANMAKU_KEEP = 200;
 const RATE_MS = 8000;
+const PROJECT_TINTS = new Set(["violet", "cyan", "amber", "rose", "gold", "blue", "green"]);
+const PROJECT_STATUSES = new Set(["live", "hidden"]);
 const BLOCKED = [
   /https?:\/\//i,
   /<script/i,
@@ -80,6 +82,49 @@ function assertNow(payload) {
   };
 }
 
+function safeHttpUrl(value) {
+  const url = String(value || "").trim();
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.toString() : "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function safeShot(value) {
+  const shot = String(value || "").trim().replace(/^\/+/, "");
+  if (/^assets\/shots\/[a-z0-9-]+\.(jpg|jpeg|png|webp)$/i.test(shot)) return shot;
+  if (/^api\/project-shot\/[a-z0-9-]{1,60}$/i.test(shot)) return shot;
+  return "";
+}
+
+function assertProjects(payload) {
+  const projects = Array.isArray(payload?.projects) ? payload.projects.slice(0, 30) : [];
+  return projects.map((project, index) => {
+    const rawId = String(project.id || "").trim().toLowerCase();
+    const id = /^[a-z0-9-]{1,60}$/.test(rawId) ? rawId : `project-${Date.now()}-${index}`;
+    const github = safeHttpUrl(project.github);
+    const rawUpdatedAt = String(project.updatedAt || "");
+    const updatedAt = Number.isNaN(Date.parse(rawUpdatedAt)) ? "" : rawUpdatedAt;
+    return {
+      id,
+      icon: /^[a-z0-9-]{1,30}$/i.test(project.icon || "") ? project.icon : "chart",
+      tint: PROJECT_TINTS.has(project.tint) ? project.tint : "blue",
+      name: cleanText(project.name, 60) || "未命名项目",
+      tag: cleanText(project.tag, 24) || "项目",
+      summary: cleanText(project.summary, 500),
+      live: safeHttpUrl(project.live),
+      ...(github ? { github } : {}),
+      ...(project.githubPublic === false ? { githubPublic: false } : {}),
+      shot: safeShot(project.shot),
+      status: PROJECT_STATUSES.has(project.status) ? project.status : "live",
+      ...(updatedAt ? { updatedAt } : {}),
+    };
+  });
+}
+
 module.exports = {
   DANMAKU_KEEP,
   RATE_MS,
@@ -87,4 +132,5 @@ module.exports = {
   assertNotes,
   assertWatchlist,
   assertNow,
+  assertProjects,
 };

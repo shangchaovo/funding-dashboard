@@ -16,15 +16,15 @@ node server.js         # http://127.0.0.1:8777
 ## 页面
 
 - **玻璃 / 护眼 / 墨夜** 三套主题，记在浏览器 localStorage
-- 只展示已经挂在公网上的站点（读 `data/site.json`）
-- 「最近在做」、观点、板块、个股：只有作者能改
-- 路过的人可以在底部打招呼
+- 只展示已经挂在公网上的站点，作者可在内容工作台管理排序与上下线
+- 「最近在做」、项目、观点、板块、个股：只有作者能改
+- 项目支持上传真实页面截图；路过的人可以从右下角展开留言
 
 ## 作者编辑
 
-连点头像五次，或打开 `http://127.0.0.1:8777/?edit=1`，输入 `.env` 里的 `HUB_ADMIN_TOKEN`。
+点击导航栏的「管理」，输入 `.env` 里的 `HUB_ADMIN_TOKEN`。登录后会进入内容工作台，可管理项目、观点、板块和个股，也可以下载完整备份、恢复默认内容或撤销上一次保存。公网 KV 自动保留每类内容最近 10 个版本；登录状态有效 7 天。
 
-本机写入 `data/notes.json`、`data/watchlist.json`、`data/now.json`、`data/danmaku.json`。
+本机写入 `data/site.json`、`data/notes.json`、`data/watchlist.json`、`data/now.json`、`data/danmaku.json`。
 
 ## 公网（Cloudflare Pages）
 

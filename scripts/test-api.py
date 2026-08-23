@@ -13,7 +13,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FILES = ["notes.json", "watchlist.json", "danmaku.json", "now.json"]
+FILES = ["site.json", "notes.json", "watchlist.json", "danmaku.json", "now.json"]
 
 
 def free_port() -> int:
@@ -106,7 +106,7 @@ def main() -> int:
         assert "application/ld+json" in note
 
         status, content, _ = request(base, "/api/content")
-        assert status == 200 and "notes" in content and "watchlist" in content
+        assert status == 200 and "site" in content and "notes" in content and "watchlist" in content
 
         status, _, _ = request(base, "/api/session", "POST", {"token": "nope"})
         assert status == 403
@@ -125,6 +125,33 @@ def main() -> int:
         )
         assert status == 200 and saved["notes"]["items"][0]["title"] == "测试"
         assert saved["notes"]["items"][0].get("slug") == "hbm-supply"
+
+        status, restored, _ = request(
+            base,
+            "/api/restore",
+            "POST",
+            {"key": "notes", "source": "latest"},
+            cookies=session_cookie,
+        )
+        assert status == 200 and restored["data"]["items"][0]["title"] == "HBM 比标题先紧", (status, restored)
+
+        status, project_saved, _ = request(
+            base,
+            "/api/projects",
+            "PUT",
+            {"projects": [{"id": "test-project", "name": "测试项目", "tag": "测试", "summary": "测试项目管理", "live": "https://example.com/", "status": "live"}]},
+            cookies=session_cookie,
+        )
+        assert status == 200 and project_saved["site"]["projects"][0]["name"] == "测试项目", (status, project_saved)
+
+        status, shot_saved, _ = request(
+            base,
+            "/api/project-shot",
+            "POST",
+            {"projectId": "test-project", "dataUrl": "data:image/png;base64,iVBORw0KGgo="},
+            cookies=session_cookie,
+        )
+        assert status == 200 and shot_saved["path"] == "api/project-shot/test-project", (status, shot_saved)
 
         status, now_saved, _ = request(
             base,

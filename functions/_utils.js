@@ -1,6 +1,12 @@
 const DANMAKU_KEEP = 200;
 const RATE_SECONDS = 8;
+const VERSION_KEEP = 10;
+const VERSION_TTL = 90 * 24 * 60 * 60;
+const LOGIN_WINDOW_SECONDS = 10 * 60;
+const LOGIN_MAX_FAILURES = 5;
 const BLOCKED = [/https?:\/\//i, /<script/i, /\b(fuck|shit|bitch)\b/i, /加微信/, /免费领取/];
+const PROJECT_TINTS = new Set(["violet", "cyan", "amber", "rose", "gold", "blue", "green"]);
+const PROJECT_STATUSES = new Set(["live", "hidden"]);
 
 export { DANMAKU_KEEP };
 
@@ -79,6 +85,60 @@ export function assertNow(payload) {
     text: cleanText(payload?.text, 80),
     updatedAt: new Date().toISOString(),
   };
+}
+
+function safeHttpUrl(value) {
+  const url = String(value || "").trim();
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.toString() : "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function safeShot(value) {
+  const shot = String(value || "").trim().replace(/^\/+/, "");
+  if (/^assets\/shots\/[a-z0-9-]+\.(jpg|jpeg|png|webp)$/i.test(shot)) return shot;
+  if (/^api\/project-shot\/[a-z0-9-]{1,60}$/i.test(shot)) return shot;
+  return "";
+}
+
+export function assertProjects(payload) {
+  const projects = Array.isArray(payload?.projects) ? payload.projects.slice(0, 30) : [];
+  return projects.map((project, index) => {
+    const rawId = String(project.id || "").trim().toLowerCase();
+    const id = /^[a-z0-9-]{1,60}$/.test(rawId) ? rawId : `project-${Date.now()}-${index}`;
+    const github = safeHttpUrl(project.github);
+    const rawUpdatedAt = String(project.updatedAt || "");
+    const updatedAt = Number.isNaN(Date.parse(rawUpdatedAt)) ? "" : rawUpdatedAt;
+    return {
+      id,
+      icon: /^[a-z0-9-]{1,30}$/i.test(project.icon || "") ? project.icon : "chart",
+      tint: PROJECT_TINTS.has(project.tint) ? project.tint : "blue",
+      name: cleanText(project.name, 60) || "未命名项目",
+      tag: cleanText(project.tag, 24) || "项目",
+      summary: cleanText(project.summary, 500),
+      live: safeHttpUrl(project.live),
+      ...(github ? { github } : {}),
+      ...(project.githubPublic === false ? { githubPublic: false } : {}),
+      shot: safeShot(project.shot),
+      status: PROJECT_STATUSES.has(project.status) ? project.status : "live",
+      ...(updatedAt ? { updatedAt } : {}),
+    };
+  });
+}
+
+export function assertProjectShot(payload) {
+  const projectId = String(payload?.projectId || "").trim().toLowerCase();
+  if (!/^[a-z0-9-]{1,60}$/.test(projectId)) {
+    throw Object.assign(new Error("项目 ID 不正确"), { status: 400 });
+  }
+  const match = String(payload?.dataUrl || "").match(/^data:(image\/(?:jpeg|png|webp));base64,([a-z0-9+/=]+)$/i);
+  if (!match) throw Object.assign(new Error("只支持 JPG、PNG 或 WebP 截图"), { status: 400 });
+  if (match[2].length > 2_800_000) throw Object.assign(new Error("截图不能超过 2 MB"), { status: 413 });
+  return { projectId, mime: match[1].toLowerCase(), base64: match[2] };
 }
 
 export function adminSecret(env) {
@@ -171,6 +231,84 @@ export async function writeStore(env, key, data) {
     throw Object.assign(new Error("未绑定 HUB_KV，无法持久化。在 Cloudflare Pages 给这个项目绑一个 KV，名称填 HUB_KV。"), { status: 503 });
   }
   await env.HUB_KV.put(key, JSON.stringify(data));
+}
+
+export async function writeStoreVersioned(env, key, data) {
+  if (!env.HUB_KV) {
+    throw Object.assign(new Error("未绑定 HUB_KV，无法持久化。在 Cloudflare Pages 给这个项目绑一个 KV，名称填 HUB_KV。"), { status: 503 });
+  }
+  const previous = await env.HUB_KV.get(key);
+  if (previous) {
+    const createdAt = new Date().toISOString();
+    const backupKey = `backup:${key}:${Date.now()}`;
+    const historyKey = `history:${key}`;
+    let history = [];
+    try {
+      history = JSON.parse((await env.HUB_KV.get(historyKey)) || "[]");
+    } catch (error) {}
+    const next = [{ key: backupKey, createdAt }, ...history].slice(0, VERSION_KEEP);
+    const expired = history.slice(VERSION_KEEP - 1);
+    await Promise.all([
+      env.HUB_KV.put(backupKey, previous, { expirationTtl: VERSION_TTL }),
+      env.HUB_KV.put(historyKey, JSON.stringify(next)),
+      ...expired.map((item) => env.HUB_KV.delete(item.key)),
+    ]);
+  }
+  await env.HUB_KV.put(key, JSON.stringify(data));
+}
+
+export async function restoreStoreVersion(env, key) {
+  if (!env.HUB_KV) throw Object.assign(new Error("未绑定 HUB_KV"), { status: 503 });
+  let history = [];
+  try {
+    history = JSON.parse((await env.HUB_KV.get(`history:${key}`)) || "[]");
+  } catch (error) {}
+  const latest = history[0];
+  if (!latest) throw Object.assign(new Error("还没有可恢复的历史版本"), { status: 404 });
+  const raw = await env.HUB_KV.get(latest.key);
+  if (!raw) throw Object.assign(new Error("这个历史版本已经过期"), { status: 404 });
+  const data = JSON.parse(raw);
+  await writeStoreVersioned(env, key, data);
+  return data;
+}
+
+export async function readStaticStore(request, path, fallback) {
+  try {
+    const response = await fetch(new URL(path, request.url));
+    if (response.ok) return await response.json();
+  } catch (error) {}
+  return fallback;
+}
+
+function loginKey(request) {
+  const ip = request.headers.get("CF-Connecting-IP") || "local";
+  return `login:${ip}`;
+}
+
+export async function loginBlocked(env, request) {
+  if (!env.HUB_KV) return false;
+  try {
+    const state = JSON.parse((await env.HUB_KV.get(loginKey(request))) || "{}");
+    return Number(state.failures || 0) >= LOGIN_MAX_FAILURES;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function recordLoginFailure(env, request) {
+  if (!env.HUB_KV) return;
+  let failures = 0;
+  try {
+    const state = JSON.parse((await env.HUB_KV.get(loginKey(request))) || "{}");
+    failures = Number(state.failures || 0);
+  } catch (error) {}
+  await env.HUB_KV.put(loginKey(request), JSON.stringify({ failures: failures + 1 }), {
+    expirationTtl: LOGIN_WINDOW_SECONDS,
+  });
+}
+
+export async function clearLoginFailures(env, request) {
+  if (env.HUB_KV) await env.HUB_KV.delete(loginKey(request));
 }
 
 export async function rateLimited(env, request) {

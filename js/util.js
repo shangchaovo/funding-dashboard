@@ -65,7 +65,7 @@ export function appIcon(name, size = 40) {
   return `<img class="app-icon" src="/assets/icons/${safe}.svg" alt="" width="${size}" height="${size}">`;
 }
 
-export function shotImg(src) {
-  if (!src || !/^assets\/shots\/[a-z0-9-]+\.(jpg|jpeg|png|webp)$/i.test(src)) return "";
-  return `<img src="/${esc(src)}" alt="">`;
+export function shotImg(src, alt = "项目页面截图") {
+  if (!src || !/^(assets\/shots\/[a-z0-9-]+\.(jpg|jpeg|png|webp)|api\/project-shot\/[a-z0-9-]{1,60})$/i.test(src)) return "";
+  return `<img src="/${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
 }

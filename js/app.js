@@ -20,10 +20,17 @@ export function getState() {
 export function setAdmin(on) {
   state.admin = Boolean(on);
   document.body.classList.toggle("admin", state.admin);
-  if (state.site) renderHero();
+  const button = document.getElementById("openAdminBtn");
+  if (button) {
+    button.classList.toggle("is-active", state.admin);
+    button.querySelector("span").textContent = state.admin ? "编辑中" : "管理";
+    button.setAttribute("aria-label", state.admin ? "当前已进入编辑模式" : "打开管理入口");
+  }
+  if (state.site) render();
 }
 
-export function setContent({ notes, watchlist, now }) {
+export function setContent({ site, notes, watchlist, now }) {
+  if (site) state.site = site;
   if (notes) state.notes = notes;
   if (watchlist) state.watchlist = watchlist;
   if (now) state.now = now;
@@ -35,6 +42,10 @@ function noteHref(item) {
 
 function liveProjects() {
   return (state.site.projects || []).filter((item) => item.status === "live" && item.live);
+}
+
+function visibleProjects() {
+  return state.admin ? (state.site.projects || []) : liveProjects();
 }
 
 function setSectionVisible(id, on) {
@@ -76,20 +87,20 @@ function renderHero() {
 }
 
 function renderSites() {
-  const items = liveProjects();
+  const items = visibleProjects();
   setSectionVisible("siteGrid", items.length > 0);
   document.getElementById("siteGrid").innerHTML = items.map((item) => {
     const github = item.github && item.githubPublic !== false
       ? `<a class="btn" href="${esc(item.github)}" target="_blank" rel="noopener">${appIcon("github", 18)} GitHub</a>`
       : "";
     return `
-    <article class="card glass" data-tint="${esc(item.tint || "blue")}">
-      ${item.shot && item.live ? `<a class="shot" href="${esc(item.live)}" target="_blank" rel="noopener">${shotImg(item.shot)}</a>` : ""}
+    <article class="card glass" data-id="${esc(item.id)}" data-tint="${esc(item.tint || "blue")}">
+      ${item.shot && item.live ? `<a class="shot" href="${esc(item.live)}" target="_blank" rel="noopener">${shotImg(item.shot, `${item.name} 页面截图`)}</a>` : ""}
       <div class="card-top">
         <span class="well app">${appIcon(item.icon || "book", 46)}</span>
-        <span class="pill live">
+        <span class="pill ${item.status === "live" ? "live" : "degraded"}">
           <i class="live-dot" aria-hidden="true"></i>
-          在线
+          ${item.status === "live" ? "在线" : "已隐藏"}
         </span>
       </div>
       <div>
@@ -97,9 +108,16 @@ function renderSites() {
         <h3>${esc(item.name)}</h3>
       </div>
       <p>${esc(item.summary)}</p>
+      ${item.updatedAt ? `<p class="project-updated">更新于 ${esc(formatDay(item.updatedAt))}</p>` : ""}
       <div class="card-links">
         ${item.live ? `<a class="btn primary" href="${esc(item.live)}" target="_blank" rel="noopener">${icon("arrow")} 打开</a>` : ""}
         ${github}
+      </div>
+      <div class="row-actions project-actions">
+        <button class="btn" type="button" data-edit-project="${esc(item.id)}">${icon("edit")} 改项目</button>
+        <button class="btn" type="button" data-move-project="${esc(item.id)}:-1" aria-label="向前移动">↑</button>
+        <button class="btn" type="button" data-move-project="${esc(item.id)}:1" aria-label="向后移动">↓</button>
+        <button class="btn danger" type="button" data-del-project="${esc(item.id)}">${icon("trash")} 删除</button>
       </div>
     </article>`;
   }).join("");
@@ -176,18 +194,19 @@ export function render() {
 }
 
 async function loadContent() {
-  const site = await fetch("/data/site.json").then((res) => res.json());
-  state.site = site;
+  const staticContent = await Promise.all([
+    fetch("/data/site.json").then((res) => res.json()),
+    fetch("/data/notes.json").then((res) => res.json()),
+    fetch("/data/watchlist.json").then((res) => res.json()),
+    fetch("/data/now.json").then((res) => res.json()).catch(() => ({ text: "" })),
+  ]);
+  state.site = staticContent[0];
   try {
     const content = await api("/api/content");
     setContent(content);
   } catch (error) {
-    const [notes, watchlist, now] = await Promise.all([
-      fetch("/data/notes.json").then((res) => res.json()),
-      fetch("/data/watchlist.json").then((res) => res.json()),
-      fetch("/data/now.json").then((res) => res.json()).catch(() => ({ text: "" })),
-    ]);
-    setContent({ notes, watchlist, now });
+    const [site, notes, watchlist, now] = staticContent;
+    setContent({ site, notes, watchlist, now });
     toast("内容接口暂不可用，已显示仓库里的种子稿。");
   }
 }

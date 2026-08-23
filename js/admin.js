@@ -5,14 +5,17 @@ function dialog(id) {
   return document.getElementById(id);
 }
 
-function field(label, name, value, type = "text") {
+function field(label, name, value, type = "text", extra = "") {
   if (type === "textarea") {
-    return `<label class="field"><span>${esc(label)}</span><textarea name="${esc(name)}">${esc(value)}</textarea></label>`;
+    return `<label class="field"><span>${esc(label)}</span><textarea name="${esc(name)}" ${extra}>${esc(value)}</textarea></label>`;
   }
-  if (type === "select") {
-    return `<label class="field"><span>${esc(label)}</span><select name="${esc(name)}">${value}</select></label>`;
-  }
-  return `<label class="field"><span>${esc(label)}</span><input name="${esc(name)}" value="${esc(value)}" /></label>`;
+  return `<label class="field"><span>${esc(label)}</span><input type="${esc(type)}" name="${esc(name)}" value="${esc(value)}" ${extra}></label>`;
+}
+
+function selectField(label, name, value, options) {
+  return `<label class="field"><span>${esc(label)}</span><select name="${esc(name)}">${options.map(([key, text]) => (
+    `<option value="${esc(key)}" ${key === value ? "selected" : ""}>${esc(text)}</option>`
+  )).join("")}</select></label>`;
 }
 
 function openEditor({ title, html, onSubmit }) {
@@ -20,13 +23,23 @@ function openEditor({ title, html, onSubmit }) {
   document.getElementById("editorTitle").textContent = title;
   document.getElementById("editorFields").innerHTML = html;
   const form = document.getElementById("editorForm");
-  const submit = async (event) => {
+  form.onsubmit = async (event) => {
     event.preventDefault();
-    const data = Object.fromEntries(new FormData(form).entries());
-    await onSubmit(data);
-    box.close();
+    const submit = form.querySelector('[type="submit"]');
+    submit.disabled = true;
+    form.setAttribute("aria-busy", "true");
+    try {
+      const data = Object.fromEntries(new FormData(form).entries());
+      await onSubmit(data);
+      box.close();
+      toast("已经保存");
+    } catch (error) {
+      toast(error.message || "保存失败");
+    } finally {
+      submit.disabled = false;
+      form.removeAttribute("aria-busy");
+    }
   };
-  form.onsubmit = submit;
   document.getElementById("editorCancel").onclick = () => box.close();
   box.showModal();
 }
@@ -38,8 +51,7 @@ async function refreshContent() {
 }
 
 async function saveNotes(items) {
-  const payload = { updatedAt: new Date().toISOString(), items };
-  await api("/api/notes", { method: "PUT", body: JSON.stringify(payload) });
+  await api("/api/notes", { method: "PUT", body: JSON.stringify({ items }) });
   await refreshContent();
 }
 
@@ -49,9 +61,18 @@ async function saveNow(text) {
 }
 
 async function saveWatchlist(watchlist) {
-  const payload = { ...watchlist, updatedAt: new Date().toISOString() };
-  await api("/api/watchlist", { method: "PUT", body: JSON.stringify(payload) });
+  await api("/api/watchlist", { method: "PUT", body: JSON.stringify(watchlist) });
   await refreshContent();
+}
+
+async function saveProjects(projects) {
+  await api("/api/projects", { method: "PUT", body: JSON.stringify({ projects }) });
+  await refreshContent();
+}
+
+function openAdmin() {
+  const target = getState().admin ? dialog("adminPanelDialog") : dialog("adminDialog");
+  if (target && !target.open) target.showModal();
 }
 
 function bindAvatarUnlock() {
@@ -63,25 +84,30 @@ function bindAvatarUnlock() {
     taps.push(now);
     if (taps.length >= 5) {
       taps = [];
-      dialog("adminDialog").showModal();
+      openAdmin();
     }
   };
   avatar?.addEventListener("click", maybeOpen);
-  if (new URLSearchParams(location.search).has("edit")) {
-    dialog("adminDialog").showModal();
-  }
+  document.getElementById("openAdminBtn")?.addEventListener("click", openAdmin);
+  if (new URLSearchParams(location.search).has("edit")) openAdmin();
 }
 
 function bindLogin() {
   document.getElementById("adminLoginBtn")?.addEventListener("click", async () => {
     const token = document.getElementById("adminToken").value;
+    const button = document.getElementById("adminLoginBtn");
+    button.disabled = true;
     try {
       await api("/api/session", { method: "POST", body: JSON.stringify({ token }) });
       setAdmin(true);
       dialog("adminDialog").close();
-      toast("已进入编辑模式");
+      dialog("adminPanelDialog").showModal();
+      document.getElementById("adminToken").value = "";
+      toast("已进入内容工作台");
     } catch (error) {
       toast(error.message || "口令不对");
+    } finally {
+      button.disabled = false;
     }
   });
 }
@@ -89,27 +115,29 @@ function bindLogin() {
 function editNow() {
   openEditor({
     title: "最近在做",
-    html: field("一句话", "text", getState().now?.text),
-    onSubmit: async (data) => {
-      await saveNow(data.text);
-    },
+    html: field("一句话", "text", getState().now?.text, "text", "maxlength=80 required"),
+    onSubmit: async (data) => saveNow(data.text),
   });
 }
 
 function editNote(existing) {
   openEditor({
-    title: existing ? "改观点" : "写一条",
-    html: field("标题", "title", existing?.title) + field("正文", "body", existing?.body, "textarea"),
+    title: existing ? "修改观点" : "发布观点",
+    html:
+      field("标题", "title", existing?.title, "text", "maxlength=80 required") +
+      field("文章路径（英文，可留空）", "slug", existing?.slug, "text", "pattern=[a-z0-9-]{1,80}") +
+      field("正文", "body", existing?.body, "textarea", "maxlength=4000 required"),
     onSubmit: async (data) => {
       const items = [...(getState().notes.items || [])];
       if (existing) {
         const index = items.findIndex((item) => item.id === existing.id);
-        if (index >= 0) items[index] = { ...existing, title: data.title, body: data.body };
+        if (index >= 0) items[index] = { ...existing, title: data.title, body: data.body, slug: data.slug || undefined };
       } else {
         items.unshift({
           id: uid("n"),
           title: data.title,
           body: data.body,
+          ...(data.slug ? { slug: data.slug } : {}),
           createdAt: new Date().toISOString(),
         });
       }
@@ -120,16 +148,15 @@ function editNote(existing) {
 
 function editSector(existing) {
   openEditor({
-    title: existing ? "改板块" : "加板块",
-    html: field("板块名", "name", existing?.name) + field("理由", "thesis", existing?.thesis, "textarea"),
+    title: existing ? "修改板块" : "添加板块",
+    html:
+      field("板块名", "name", existing?.name, "text", "maxlength=40 required") +
+      field("关注逻辑", "thesis", existing?.thesis, "textarea", "maxlength=800 required"),
     onSubmit: async (data) => {
       const watchlist = structuredClone(getState().watchlist);
       if (existing) {
         const sector = watchlist.sectors.find((item) => item.id === existing.id);
-        if (sector) {
-          sector.name = data.name;
-          sector.thesis = data.thesis;
-        }
+        if (sector) Object.assign(sector, { name: data.name, thesis: data.thesis });
       } else {
         watchlist.sectors.push({ id: uid("s"), name: data.name, thesis: data.thesis, stocks: [] });
       }
@@ -140,22 +167,17 @@ function editSector(existing) {
 
 function editStock(sectorId, existing) {
   const sectors = getState().watchlist.sectors || [];
-  const options = sectors.map((sector) => (
-    `<option value="${esc(sector.id)}" ${sector.id === sectorId ? "selected" : ""}>${esc(sector.name)}</option>`
-  )).join("");
   openEditor({
-    title: existing ? "改个股" : "加个股",
+    title: existing ? "修改个股" : "添加个股",
     html:
-      field("板块", "sectorId", options, "select") +
-      field("代码", "symbol", existing?.symbol) +
-      field("名称", "name", existing?.name) +
-      field("理由", "reason", existing?.reason, "textarea"),
+      selectField("所属板块", "sectorId", sectorId, sectors.map((sector) => [sector.id, sector.name])) +
+      field("代码", "symbol", existing?.symbol, "text", "maxlength=12 required") +
+      field("名称", "name", existing?.name, "text", "maxlength=40 required") +
+      field("关注理由", "reason", existing?.reason, "textarea", "maxlength=800 required"),
     onSubmit: async (data) => {
       const watchlist = structuredClone(getState().watchlist);
       if (existing) {
-        for (const sector of watchlist.sectors) {
-          sector.stocks = (sector.stocks || []).filter((item) => item.id !== existing.id);
-        }
+        for (const sector of watchlist.sectors) sector.stocks = (sector.stocks || []).filter((item) => item.id !== existing.id);
       }
       const sector = watchlist.sectors.find((item) => item.id === data.sectorId);
       if (!sector) throw new Error("找不到板块");
@@ -171,42 +193,136 @@ function editStock(sectorId, existing) {
   });
 }
 
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    if (file.size > 2_000_000) return reject(new Error("截图不能超过 2 MB"));
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("读取截图失败"));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadProjectShot(projectId, file) {
+  const dataUrl = await fileToDataUrl(file);
+  const result = await api("/api/project-shot", {
+    method: "POST",
+    body: JSON.stringify({ projectId, dataUrl }),
+  });
+  return result.path;
+}
+
+function editProject(existing) {
+  const projectId = existing?.id || `project-${Date.now().toString(36)}`;
+  openEditor({
+    title: existing ? "修改项目" : "添加项目",
+    html:
+      `<div class="field-grid">` +
+      field("项目名称", "name", existing?.name, "text", "maxlength=60 required") +
+      field("分类标签", "tag", existing?.tag, "text", "maxlength=24 required") +
+      `</div>` +
+      field("项目介绍", "summary", existing?.summary, "textarea", "maxlength=500 required") +
+      field("线上地址", "live", existing?.live, "url", "required") +
+      field("GitHub（可留空）", "github", existing?.github, "url") +
+      `<div class="field-grid">` +
+      selectField("图标", "icon", existing?.icon || "chart", [["chart", "图表"], ["pulse", "脉冲"], ["book", "书本"], ["terminal", "终端"], ["candles", "交易"], ["file", "文件"]]) +
+      selectField("色彩", "tint", existing?.tint || "blue", [["blue", "蓝色"], ["green", "绿色"], ["cyan", "青色"], ["violet", "紫色"], ["amber", "琥珀"], ["gold", "金色"], ["rose", "玫红"]]) +
+      selectField("状态", "status", existing?.status || "live", [["live", "公开上线"], ["hidden", "暂时隐藏"]]) +
+      `</div>` +
+      field("现有截图路径", "shot", existing?.shot, "text", "placeholder=assets/shots/example.jpg") +
+      `<label class="field upload-field"><span>上传新截图（JPG / PNG / WebP，不超过 2 MB）</span><input type="file" name="shotFile" accept="image/jpeg,image/png,image/webp"></label>`,
+    onSubmit: async (data) => {
+      let shot = data.shot;
+      if (data.shotFile instanceof File && data.shotFile.size) shot = await uploadProjectShot(projectId, data.shotFile);
+      const projects = structuredClone(getState().site.projects || []);
+      const next = {
+        ...(existing || {}), id: projectId, name: data.name, tag: data.tag, summary: data.summary,
+        live: data.live, github: data.github, icon: data.icon, tint: data.tint, status: data.status,
+        shot, updatedAt: new Date().toISOString(),
+      };
+      const index = projects.findIndex((item) => item.id === projectId);
+      if (index >= 0) projects[index] = next;
+      else projects.unshift(next);
+      await saveProjects(projects);
+    },
+  });
+}
+
+async function restoreContent(key, source, label) {
+  const action = source === "default" ? `恢复仓库里的默认${label}` : `撤销${label}的上一次保存`;
+  if (!confirm(`${action}？当前内容会自动留一份历史版本。`)) return;
+  await api("/api/restore", { method: "POST", body: JSON.stringify({ key, source }) });
+  await refreshContent();
+  toast(`${label}已恢复`);
+}
+
+function downloadBackup() {
+  const state = getState();
+  const payload = { exportedAt: new Date().toISOString(), site: state.site, notes: state.notes, watchlist: state.watchlist, now: state.now };
+  const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `chase-hub-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+  toast("备份已经下载");
+}
+
+function bindAdminPanel() {
+  document.getElementById("adminPanelClose")?.addEventListener("click", () => dialog("adminPanelDialog").close());
+  document.getElementById("panelAddProjectBtn")?.addEventListener("click", () => { dialog("adminPanelDialog").close(); editProject(null); });
+  document.getElementById("panelAddNoteBtn")?.addEventListener("click", () => { dialog("adminPanelDialog").close(); editNote(null); });
+  document.getElementById("panelAddSectorBtn")?.addEventListener("click", () => { dialog("adminPanelDialog").close(); editSector(null); });
+  document.getElementById("downloadBackupBtn")?.addEventListener("click", downloadBackup);
+  document.getElementById("restoreDefaultsBtn")?.addEventListener("click", async () => {
+    if (!confirm("恢复默认观点与关注板块？当前线上内容会自动备份。")) return;
+    try {
+      await api("/api/restore", { method: "POST", body: JSON.stringify({ key: "notes", source: "default" }) });
+      await api("/api/restore", { method: "POST", body: JSON.stringify({ key: "watchlist", source: "default" }) });
+      await refreshContent();
+      toast("默认内容已经恢复");
+    } catch (error) {
+      toast(error.message || "恢复失败");
+    }
+  });
+  document.getElementById("undoNotesBtn")?.addEventListener("click", () => restoreContent("notes", "latest", "观点").catch((error) => toast(error.message)));
+  document.getElementById("undoWatchlistBtn")?.addEventListener("click", () => restoreContent("watchlist", "latest", "关注板块").catch((error) => toast(error.message)));
+  document.getElementById("undoProjectsBtn")?.addEventListener("click", () => restoreContent("site", "latest", "项目").catch((error) => toast(error.message)));
+  document.getElementById("clearDanmakuBtn")?.addEventListener("click", async () => {
+    if (!confirm("清空所有留言？")) return;
+    await api("/api/danmaku", { method: "DELETE" });
+    toast("留言已清空");
+  });
+  document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+    await api("/api/session", { method: "DELETE" });
+    dialog("adminPanelDialog").close();
+    setAdmin(false);
+    toast("已退出编辑");
+  });
+}
+
 function bindEditors() {
-  document.getElementById("editNowBtn")?.addEventListener("click", () => editNow());
+  document.getElementById("editNowBtn")?.addEventListener("click", editNow);
+  document.getElementById("addProjectBtn")?.addEventListener("click", () => editProject(null));
   document.getElementById("addNoteBtn")?.addEventListener("click", () => editNote(null));
   document.getElementById("addSectorBtn")?.addEventListener("click", () => editSector(null));
   document.getElementById("addStockBtn")?.addEventListener("click", () => {
     const first = getState().watchlist.sectors?.[0];
-    if (!first) {
-      toast("先加一个板块");
-      return;
-    }
+    if (!first) return toast("先加一个板块");
     editStock(first.id, null);
-  });
-  document.getElementById("clearDanmakuBtn")?.addEventListener("click", async () => {
-    if (!confirm("清空所有弹幕？")) return;
-    await api("/api/danmaku", { method: "DELETE" });
-    toast("弹幕已清空");
-  });
-  document.getElementById("logoutBtn")?.addEventListener("click", async () => {
-    await api("/api/session", { method: "DELETE" });
-    setAdmin(false);
-    toast("已退出编辑");
   });
 
   document.body.addEventListener("click", async (event) => {
-    const target = event.target.closest("[data-edit-note], [data-del-note], [data-edit-sector], [data-del-sector], [data-edit-stock], [data-del-stock]");
+    const target = event.target.closest("[data-edit-note], [data-del-note], [data-edit-sector], [data-del-sector], [data-edit-stock], [data-del-stock], [data-edit-project], [data-del-project], [data-move-project]");
     if (!target || !getState().admin) return;
     try {
-      if (target.dataset.editNote) {
-        editNote(getState().notes.items.find((item) => item.id === target.dataset.editNote));
-      } else if (target.dataset.delNote) {
-        if (!confirm("删除这条观点？")) return;
-        await saveNotes(getState().notes.items.filter((item) => item.id !== target.dataset.delNote));
-      } else if (target.dataset.editSector) {
-        editSector(getState().watchlist.sectors.find((item) => item.id === target.dataset.editSector));
-      } else if (target.dataset.delSector) {
-        if (!confirm("删除这个板块和下面的个股？")) return;
+      if (target.dataset.editNote) editNote(getState().notes.items.find((item) => item.id === target.dataset.editNote));
+      else if (target.dataset.delNote) {
+        if (confirm("删除这条观点？保存前会自动备份。")) await saveNotes(getState().notes.items.filter((item) => item.id !== target.dataset.delNote));
+      } else if (target.dataset.editSector) editSector(getState().watchlist.sectors.find((item) => item.id === target.dataset.editSector));
+      else if (target.dataset.delSector) {
+        if (!confirm("删除这个板块和下面的个股？保存前会自动备份。")) return;
         const watchlist = structuredClone(getState().watchlist);
         watchlist.sectors = watchlist.sectors.filter((item) => item.id !== target.dataset.delSector);
         await saveWatchlist(watchlist);
@@ -220,6 +336,19 @@ function bindEditors() {
         const sector = watchlist.sectors.find((item) => item.id === sectorId);
         if (sector) sector.stocks = sector.stocks.filter((item) => item.id !== stockId);
         await saveWatchlist(watchlist);
+      } else if (target.dataset.editProject) editProject(getState().site.projects.find((item) => item.id === target.dataset.editProject));
+      else if (target.dataset.delProject) {
+        if (!confirm("删除这个项目？保存前会自动备份。")) return;
+        await saveProjects(getState().site.projects.filter((item) => item.id !== target.dataset.delProject));
+      } else if (target.dataset.moveProject) {
+        const [projectId, direction] = target.dataset.moveProject.split(":");
+        const projects = structuredClone(getState().site.projects);
+        const from = projects.findIndex((item) => item.id === projectId);
+        const to = Math.max(0, Math.min(projects.length - 1, from + Number(direction)));
+        if (from !== to) {
+          projects.splice(to, 0, projects.splice(from, 1)[0]);
+          await saveProjects(projects);
+        }
       }
     } catch (error) {
       toast(error.message || "保存失败");
@@ -228,7 +357,11 @@ function bindEditors() {
 }
 
 export function initAdmin() {
+  const entry = document.getElementById("openAdminBtn");
+  if (!entry || entry.dataset.adminReady === "true") return;
+  entry.dataset.adminReady = "true";
   bindAvatarUnlock();
   bindLogin();
+  bindAdminPanel();
   bindEditors();
 }

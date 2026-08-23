@@ -44,6 +44,9 @@ const MIME = {
 const STATIC_ROOTS = new Set(["css", "js", "data", "assets", "about", "notes"]);
 const STATIC_FILES = new Set(["index.html", "robots.txt", "sitemap.xml"]);
 const rates = new Map();
+const loginFailures = new Map();
+const versions = new Map();
+const projectShots = new Map();
 
 function send(res, status, body, headers = {}) {
   res.writeHead(status, {
@@ -74,6 +77,35 @@ function writeJson(name, data) {
   const tmp = `${file}.tmp`;
   fs.writeFileSync(tmp, `${JSON.stringify(data, null, 2)}\n`);
   fs.renameSync(tmp, file);
+}
+
+const defaults = {
+  "site.json": readJson("site.json", { projects: [] }),
+  "notes.json": readJson("notes.json", { items: [] }),
+  "watchlist.json": readJson("watchlist.json", { sectors: [] }),
+  "now.json": readJson("now.json", { text: "" }),
+};
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function writeJsonVersioned(name, data) {
+  const history = versions.get(name) || [];
+  history.unshift(readJson(name, {}));
+  versions.set(name, history.slice(0, 10));
+  writeJson(name, data);
+}
+
+function restoreJsonVersion(name) {
+  const history = versions.get(name) || [];
+  if (!history.length) throw Object.assign(new Error("还没有可恢复的历史版本"), { status: 404 });
+  const data = history.shift();
+  const current = readJson(name, {});
+  history.unshift(current);
+  versions.set(name, history.slice(0, 10));
+  writeJson(name, data);
+  return data;
 }
 
 function adminSecret() {
@@ -156,6 +188,24 @@ function limited(ip) {
   return false;
 }
 
+function loginBlocked(ip) {
+  const state = loginFailures.get(ip);
+  if (!state || Date.now() - state.startedAt > 10 * 60 * 1000) {
+    loginFailures.delete(ip);
+    return false;
+  }
+  return state.failures >= 5;
+}
+
+function recordLoginFailure(ip) {
+  const current = loginFailures.get(ip);
+  if (!current || Date.now() - current.startedAt > 10 * 60 * 1000) {
+    loginFailures.set(ip, { failures: 1, startedAt: Date.now() });
+    return;
+  }
+  current.failures += 1;
+}
+
 function safeStaticPath(urlPath) {
   try {
     const decoded = decodeURIComponent(urlPath.split("?")[0]);
@@ -209,11 +259,18 @@ async function handleApi(req, res, url) {
       sendJson(res, 503, { error: "未配置 HUB_ADMIN_TOKEN" });
       return;
     }
+    const ip = clientIp(req);
+    if (loginBlocked(ip)) {
+      sendJson(res, 429, { error: "口令尝试次数过多，请 10 分钟后再试" });
+      return;
+    }
     const body = JSON.parse((await readBody(req)) || "{}");
     if (!tokenOk(String(body.token || ""), secret)) {
+      recordLoginFailure(ip);
       sendJson(res, 403, { error: "口令不对" });
       return;
     }
+    loginFailures.delete(ip);
     sendJson(res, 200, { admin: true }, { "Set-Cookie": cookieHeader(signSession(secret), secure) });
     return;
   }
@@ -225,6 +282,7 @@ async function handleApi(req, res, url) {
 
   if (route === "/api/content" && req.method === "GET") {
     sendJson(res, 200, {
+      site: readJson("site.json", { projects: [] }),
       notes: readJson("notes.json", { items: [] }),
       watchlist: readJson("watchlist.json", { sectors: [] }),
       now: readJson("now.json", { text: "" }),
@@ -238,7 +296,7 @@ async function handleApi(req, res, url) {
       return;
     }
     const notes = rules.assertNotes(JSON.parse((await readBody(req)) || "{}"));
-    writeJson("notes.json", notes);
+    writeJsonVersioned("notes.json", notes);
     sendJson(res, 200, { ok: true, notes });
     return;
   }
@@ -249,7 +307,7 @@ async function handleApi(req, res, url) {
       return;
     }
     const watchlist = rules.assertWatchlist(JSON.parse((await readBody(req)) || "{}"));
-    writeJson("watchlist.json", watchlist);
+    writeJsonVersioned("watchlist.json", watchlist);
     sendJson(res, 200, { ok: true, watchlist });
     return;
   }
@@ -260,8 +318,77 @@ async function handleApi(req, res, url) {
       return;
     }
     const now = rules.assertNow(JSON.parse((await readBody(req)) || "{}"));
-    writeJson("now.json", now);
+    writeJsonVersioned("now.json", now);
     sendJson(res, 200, { ok: true, now });
+    return;
+  }
+
+  if (route === "/api/projects" && req.method === "PUT") {
+    if (!isAdmin(req)) {
+      sendJson(res, 401, { error: "访客不能改项目" });
+      return;
+    }
+    const current = readJson("site.json", { projects: [] });
+    const projects = rules.assertProjects(JSON.parse((await readBody(req)) || "{}"));
+    const site = { ...current, projects, updatedAt: new Date().toISOString() };
+    writeJsonVersioned("site.json", site);
+    sendJson(res, 200, { ok: true, site });
+    return;
+  }
+
+  if (route === "/api/restore" && req.method === "POST") {
+    if (!isAdmin(req)) {
+      sendJson(res, 401, { error: "只有作者能恢复内容" });
+      return;
+    }
+    const body = JSON.parse((await readBody(req)) || "{}");
+    const names = { site: "site.json", notes: "notes.json", watchlist: "watchlist.json", now: "now.json" };
+    const name = names[body.key];
+    if (!name) {
+      sendJson(res, 400, { error: "不支持恢复这类内容" });
+      return;
+    }
+    let data;
+    if (body.source === "default") {
+      data = clone(defaults[name]);
+      writeJsonVersioned(name, data);
+    } else if (body.source === "latest") {
+      data = restoreJsonVersion(name);
+    } else {
+      sendJson(res, 400, { error: "恢复来源不正确" });
+      return;
+    }
+    sendJson(res, 200, { ok: true, key: body.key, data });
+    return;
+  }
+
+  if (route === "/api/project-shot" && req.method === "POST") {
+    if (!isAdmin(req)) {
+      sendJson(res, 401, { error: "只有作者能上传截图" });
+      return;
+    }
+    const body = JSON.parse((await readBody(req, 3_000_000)) || "{}");
+    const match = String(body.dataUrl || "").match(/^data:(image\/(?:jpeg|png|webp));base64,([a-z0-9+/=]+)$/i);
+    if (!/^[a-z0-9-]{1,60}$/.test(body.projectId || "") || !match || match[2].length > 2_800_000) {
+      sendJson(res, 400, { error: "截图格式或项目 ID 不正确" });
+      return;
+    }
+    projectShots.set(body.projectId, { mime: match[1].toLowerCase(), base64: match[2] });
+    sendJson(res, 200, { ok: true, path: `api/project-shot/${body.projectId}` });
+    return;
+  }
+
+  if (route.startsWith("/api/project-shot/") && req.method === "GET") {
+    const projectId = route.slice("/api/project-shot/".length);
+    const shot = projectShots.get(projectId);
+    if (!shot) {
+      send(res, 404, "Not Found", { "Content-Type": "text/plain; charset=utf-8" });
+      return;
+    }
+    send(res, 200, Buffer.from(shot.base64, "base64"), {
+      "Content-Type": shot.mime,
+      "X-Content-Type-Options": "nosniff",
+    });
     return;
   }
 

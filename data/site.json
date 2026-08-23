@@ -51,6 +51,28 @@
   "canonical": "https://chaestblog.pages.dev/",
   "projects": [
     {
+      "id": "predict-pulse",
+      "icon": "pulse",
+      "tint": "green",
+      "name": "Predict Pulse",
+      "tag": "预测市场",
+      "summary": "聚合预测市场的每日热点与盘口变化，追踪聪明钱持仓、套利机会和带来源权重的观点情绪；每条信号都保留原文，方便回到市场核验。",
+      "live": "https://predict-pulse.signal-harbor.workers.dev/?view=sentiment",
+      "shot": "assets/shots/predict-pulse.jpg",
+      "status": "live"
+    },
+    {
+      "id": "signal-harbor",
+      "icon": "chart",
+      "tint": "cyan",
+      "name": "Signal Harbor",
+      "tag": "美股研究",
+      "summary": "聚合美股 AI、半导体与云计算的新闻情绪、分析师观点和 OCC 官方期权持仓，集中查看 Put/Call Wall、Max Pain 与可核验来源。",
+      "live": "https://signal-harbor-terminal.signal-harbor.workers.dev/#overview",
+      "shot": "assets/shots/signal-harbor.jpg",
+      "status": "live"
+    },
+    {
       "id": "wordpaper",
       "icon": "book",
       "tint": "violet",
