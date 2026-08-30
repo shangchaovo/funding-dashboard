@@ -26,8 +26,9 @@ jobs:
           set -euo pipefail
           STAGE=dist
           mkdir -p "$STAGE"
-          cp index.html robots.txt sitemap.xml "$STAGE/"
-          for dir in assets css js data functions about notes; do
+          node scripts/build-static.mjs
+          cp index.html 404.html robots.txt rss.xsl _headers "$STAGE/"
+          for dir in assets css js data functions shared about notes rss; do
             cp -R "$dir" "$STAGE/"
           done
       - uses: cloudflare/wrangler-action@v3

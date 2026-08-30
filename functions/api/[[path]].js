@@ -23,6 +23,12 @@ import {
   loginBlocked,
   recordLoginFailure,
   clearLoginFailures,
+  probeTargets,
+  healthIsFresh,
+  readHealth,
+  saveHealth,
+  bumpHits,
+  readHits,
 } from "../_utils.js";
 
 function routeName(context) {
@@ -170,6 +176,34 @@ export async function onRequest(context) {
           "X-Content-Type-Options": "nosniff",
         },
       });
+    }
+
+    if (route === "health" && method === "GET") {
+      const site = await readStore(env, request, "site", "/data/site.json", { projects: [] });
+      const targets = (site.projects || [])
+        .filter((project) => project.status === "live" && project.live)
+        .map((project) => ({ id: project.id, url: project.live }));
+      const cached = await readHealth(env);
+      if (cached && healthIsFresh(cached)) {
+        return json(200, { ...cached, stale: false });
+      }
+      // 有旧结果就先返回旧的，探活放到后台，别让访客等 6 秒
+      if (cached) {
+        context.waitUntil(probeTargets(targets).then((health) => saveHealth(env, health)));
+        return json(200, { ...cached, stale: true });
+      }
+      const health = await probeTargets(targets);
+      context.waitUntil(saveHealth(env, health));
+      return json(200, { ...health, stale: false });
+    }
+
+    if (route === "hit" && method === "POST") {
+      const counts = await bumpHits(env);
+      return json(200, counts);
+    }
+
+    if (route === "hit" && method === "GET") {
+      return json(200, await readHits(env));
     }
 
     if (route === "danmaku" && method === "GET") {

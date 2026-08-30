@@ -7,6 +7,7 @@
     <meta name="description" content="独立开发者 Chase Xie 的个人导航：Predict Pulse、Signal Harbor、WordPaper、加密终端、外资研报、交易日报和校招简历工坊，以及最近在盯的 AI 算力与 HBM。" />
     <meta name="google-site-verification" content="O95cw5EyVnewTnY-gCXj8kBVqnA2D88TB6CyO-TnIzk" />
     <link rel="canonical" href="https://chaestblog.pages.dev/" />
+    <link rel="alternate" type="application/rss+xml" title="chaestblog RSS" href="https://chaestblog.pages.dev/rss.xml" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="zh_CN" />
     <meta property="og:site_name" content="chaestblog" />
@@ -22,8 +23,8 @@
     <meta name="twitter:description" content="独立开发者。把已上线的市场工具和学习产品放在一页，并写下最近在盯的 AI 算力与 HBM。" />
     <meta name="twitter:image" content="https://chaestblog.pages.dev/assets/og.jpg" />
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
-    <link rel="stylesheet" href="/css/themes.css?v=20260823a" />
-    <link rel="stylesheet" href="/css/styles.css?v=20260823a" />
+    <link rel="stylesheet" href="/css/themes.css?v=20260830a" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260830a" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -61,6 +62,11 @@
           var theme = localStorage.getItem("hubTheme");
           if (theme === "liquid" || theme === "eye" || theme === "ink") {
             document.documentElement.dataset.theme = theme;
+            return;
+          }
+          // 没手动选过就跟系统：深色系统进墨夜
+          if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            document.documentElement.dataset.theme = "ink";
           }
         } catch (error) {}
       })();
@@ -93,6 +99,7 @@
       <symbol id="i-github" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 .3C5.37.3 0 5.67 0 12.3c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.28-.01-1.04-.02-2.04-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.48 5.92.43.37.81 1.1.81 2.22 0 1.6-.01 2.89-.01 3.29 0 .32.21.69.82.57C20.56 22.1 24 17.6 24 12.3 24 5.67 18.63.3 12 .3Z"/></symbol>
       <symbol id="i-x" viewBox="0 0 24 24"><path d="M4 4 20 20 M14.6 4 4 20 M20 4 9.8 16.4"/></symbol>
       <symbol id="i-telegram" viewBox="0 0 24 24"><path d="M21.2 4.6 3.6 11.4 10.2 13.6 17.2 8 12.2 14.8 10.2 13.6 10.1 19.4 Z"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2"/><path d="M15.4 15.4 20 20"/></symbol>
     </svg>
 
     <div class="atmosphere" aria-hidden="true">
@@ -112,11 +119,14 @@
       </a>
       <nav class="nav-links" aria-label="页面区块">
         <a href="#sites"><svg class="ic"><use href="#i-compass"></use></svg>站点</a>
-        <a href="#notes"><svg class="ic"><use href="#i-feather"></use></svg>观点</a>
+        <a href="/notes/"><svg class="ic"><use href="#i-feather"></use></svg>观点</a>
         <a href="#watch"><svg class="ic"><use href="#i-trend"></use></svg>关注</a>
         <a href="/about/"><svg class="ic"><use href="#i-user"></use></svg>关于</a>
         <a href="#contact"><svg class="ic"><use href="#i-chat"></use></svg>联系</a>
       </nav>
+      <button class="palette-entry" id="openPaletteBtn" type="button" aria-controls="paletteDialog" hidden>
+        <svg class="ic"><use href="#i-search"></use></svg><span>搜索</span><kbd class="palette-key">⌘K</kbd>
+      </button>
       <button class="admin-entry" id="openAdminBtn" type="button" aria-controls="adminDialog">
         <svg class="ic"><use href="#i-lock"></use></svg><span>管理</span>
       </button>
@@ -160,8 +170,8 @@
           </div>
           <div class="stat-row" id="statRow">
             <div class="stat"><b>7</b><span>在线站点</span></div>
-            <div class="stat"><b>1</b><span>条观点</span></div>
-            <div class="stat"><b>4</b><span>只在盯</span></div>
+            <div class="stat"><b>2</b><span>条观点</span></div>
+            <div class="stat"><b>6</b><span>只在盯</span></div>
           </div>
         </article>
       </section>
@@ -181,7 +191,7 @@
         <div class="board-marquee" id="boardMarquee">
         <div class="project-board" id="siteGrid">
           <article class="card glass" data-id="predict-pulse" data-tint="green">
-            <a class="shot" href="https://predict-pulse.signal-harbor.workers.dev/?view=sentiment" target="_blank" rel="noopener"><img src="/assets/shots/predict-pulse.jpg" alt="Predict Pulse 预测市场观点与情绪页面截图" loading="lazy" decoding="async"></a>
+            <a class="shot" href="https://predict-pulse.signal-harbor.workers.dev/?view=sentiment" target="_blank" rel="noopener"><picture><source type="image/webp" srcset="/assets/shots/predict-pulse.webp"><img src="/assets/shots/predict-pulse.jpg" alt="Predict Pulse 预测市场观点与情绪页面截图" width="1280" height="800" loading="lazy" decoding="async"></picture></a>
             <div class="card-top">
               <span class="well app"><img class="app-icon" src="/assets/icons/pulse.svg" alt="" width="46" height="46"></span>
               <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
@@ -196,7 +206,7 @@
             </div>
           </article>
           <article class="card glass" data-tint="cyan">
-            <a class="shot" href="https://signal-harbor-terminal.signal-harbor.workers.dev/#overview" target="_blank" rel="noopener"><img src="/assets/shots/signal-harbor.jpg" alt="Signal Harbor 美股研究终端页面截图" loading="lazy" decoding="async"></a>
+            <a class="shot" href="https://signal-harbor-terminal.signal-harbor.workers.dev/#overview" target="_blank" rel="noopener"><picture><source type="image/webp" srcset="/assets/shots/signal-harbor.webp"><img src="/assets/shots/signal-harbor.jpg" alt="Signal Harbor 美股研究终端页面截图" width="1280" height="800" loading="lazy" decoding="async"></picture></a>
             <div class="card-top">
               <span class="well app"><img class="app-icon" src="/assets/icons/chart.svg" alt="" width="46" height="46"></span>
               <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
@@ -211,7 +221,7 @@
             </div>
           </article>
           <article class="card glass" data-tint="violet">
-            <a class="shot" href="https://wordpaper.pages.dev/" target="_blank" rel="noopener"><img src="/assets/shots/wordpaper.jpg" alt="WordPaper 单词壁纸页面截图" loading="lazy" decoding="async"></a>
+            <a class="shot" href="https://wordpaper.pages.dev/" target="_blank" rel="noopener"><picture><source type="image/webp" srcset="/assets/shots/wordpaper.webp"><img src="/assets/shots/wordpaper.jpg" alt="WordPaper 单词壁纸页面截图" width="1280" height="800" loading="lazy" decoding="async"></picture></a>
             <div class="card-top">
               <span class="well app"><img class="app-icon" src="/assets/icons/book.svg" alt="" width="46" height="46"></span>
               <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
@@ -227,7 +237,7 @@
             </div>
           </article>
           <article class="card glass" data-tint="cyan">
-            <a class="shot" href="https://crypto-funding-arbitrage.pages.dev/" target="_blank" rel="noopener"><img src="/assets/shots/terminal.jpg" alt="加密终端页面截图" loading="lazy" decoding="async"></a>
+            <a class="shot" href="https://crypto-funding-arbitrage.pages.dev/" target="_blank" rel="noopener"><picture><source type="image/webp" srcset="/assets/shots/terminal.webp"><img src="/assets/shots/terminal.jpg" alt="加密终端页面截图" width="1280" height="800" loading="lazy" decoding="async"></picture></a>
             <div class="card-top">
               <span class="well app"><img class="app-icon" src="/assets/icons/terminal.svg" alt="" width="46" height="46"></span>
               <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
@@ -242,7 +252,7 @@
             </div>
           </article>
           <article class="card glass" data-tint="amber">
-            <a class="shot" href="https://fresearch.cc.cd/" target="_blank" rel="noopener"><img src="/assets/shots/research.jpg" alt="外资投行研报页面截图" loading="lazy" decoding="async"></a>
+            <a class="shot" href="https://fresearch.cc.cd/" target="_blank" rel="noopener"><picture><source type="image/webp" srcset="/assets/shots/research.webp"><img src="/assets/shots/research.jpg" alt="外资投行研报页面截图" width="1280" height="800" loading="lazy" decoding="async"></picture></a>
             <div class="card-top">
               <span class="well app"><img class="app-icon" src="/assets/icons/chart.svg" alt="" width="46" height="46"></span>
               <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
@@ -258,7 +268,7 @@
             </div>
           </article>
           <article class="card glass" data-tint="gold">
-            <a class="shot" href="https://dailytrade.cc.cd/" target="_blank" rel="noopener"><img src="/assets/shots/dailytrade.jpg" alt="交易每日报告页面截图" loading="lazy" decoding="async"></a>
+            <a class="shot" href="https://dailytrade.cc.cd/" target="_blank" rel="noopener"><picture><source type="image/webp" srcset="/assets/shots/dailytrade.webp"><img src="/assets/shots/dailytrade.jpg" alt="交易每日报告页面截图" width="1280" height="800" loading="lazy" decoding="async"></picture></a>
             <div class="card-top">
               <span class="well app"><img class="app-icon" src="/assets/icons/candles.svg" alt="" width="46" height="46"></span>
               <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
@@ -273,7 +283,7 @@
             </div>
           </article>
           <article class="card glass" data-tint="rose">
-            <a class="shot" href="https://resume-5lv.pages.dev/" target="_blank" rel="noopener"><img src="/assets/shots/resume.jpg" alt="简历工坊页面截图" loading="lazy" decoding="async"></a>
+            <a class="shot" href="https://resume-5lv.pages.dev/" target="_blank" rel="noopener"><picture><source type="image/webp" srcset="/assets/shots/resume.webp"><img src="/assets/shots/resume.jpg" alt="简历工坊页面截图" width="1280" height="800" loading="lazy" decoding="async"></picture></a>
             <div class="card-top">
               <span class="well app"><img class="app-icon" src="/assets/icons/file.svg" alt="" width="46" height="46"></span>
               <span class="pill live"><i class="live-dot" aria-hidden="true"></i>在线</span>
@@ -299,12 +309,17 @@
               <p class="kicker"><svg class="ic"><use href="#i-feather"></use></svg> 02 · Notes</p>
               <h2>观点</h2>
             </div>
-            <p class="hint">写过的判断会留链接；数字变了就改日期。</p>
+            <p class="hint"><a href="/notes/">全部观点 →</a></p>
           </div>
           <div class="admin-only editor-bar">
             <button class="btn primary" id="addNoteBtn" type="button"><svg class="ic"><use href="#i-plus"></use></svg>写一条</button>
           </div>
           <div class="notes" id="noteList">
+            <article class="note glass" data-id="n_cmipldxjd4">
+              <time>2026年8月25日</time>
+              <h3>CPU和GPU将1:1</h3>
+              <p>关注AMD（HBM机柜抢占英伟达市场份额，CPU目前第一，CPU和GPU数量的重构），INTEL（皇家半导体，川普的喊单，重兴美国工业，转移台积电工艺，进军内存市场）</p>
+            </article>
             <article class="note glass" data-id="n_hbm">
               <time>2026年8月17日</time>
               <h3><a href="/notes/hbm-supply/">HBM 比标题先紧</a></h3>
@@ -330,25 +345,37 @@
             <article class="sector glass" data-id="s_ai" data-tint="amber">
               <div class="card-top">
                 <span class="well app"><img class="app-icon" src="/assets/icons/watch.svg" alt="" width="48" height="48"></span>
-                <span class="pill">3 只</span>
+                <span class="pill">2 只</span>
               </div>
-              <h3>AI 算力</h3>
-              <p>训练与推理的资本开支还在，GPU、网络、代工是我最近盯得最紧的一条主线。数字会变，逻辑先写在这里。</p>
+              <h3>光模块CPO</h3>
+              <p>AI算力瓶颈在当前通信传输上，需要替代铜缆来高效传输数据还有算力</p>
               <div class="stocks">
-                <div class="stock"><div class="stock-head"><span class="symbol">NVDA</span><strong>NVIDIA</strong></div><p>CUDA 生态与数据中心 GPU 仍是主轴。我更关心出货节奏和客户资本开支，而不是单日涨跌。</p></div>
-                <div class="stock"><div class="stock-head"><span class="symbol">AVGO</span><strong>Broadcom</strong></div><p>自定义加速芯片和网络交换，吃的是同一笔 AI 开支，客户集中度值得单独记账。</p></div>
-                <div class="stock"><div class="stock-head"><span class="symbol">TSM</span><strong>台积电</strong></div><p>先进制程几乎是所有 AI 芯片的共同瓶颈。产能与 CoWoS 比叙事更硬。</p></div>
+                <div class="stock"><div class="stock-head"><span class="symbol">LITE</span><strong>LITE</strong></div><p>美国光模块</p></div>
+                <div class="stock"><div class="stock-head"><span class="symbol">MRVL</span><strong>迈威尔</strong></div><p>黄仁勋喊单万亿，看到5折当下也存在被低估，算力，光模块，ASIC芯片定制老二（仅次于博通）</p></div>
               </div>
             </article>
             <article class="sector glass" data-id="s_mem" data-tint="amber">
               <div class="card-top">
                 <span class="well app"><img class="app-icon" src="/assets/icons/watch.svg" alt="" width="48" height="48"></span>
-                <span class="pill">1 只</span>
+                <span class="pill">3 只</span>
               </div>
               <h3>存储 / HBM</h3>
               <p>HBM 供给紧，存储周期和 AI 需求叠在一起。跟踪爬坡比跟踪标题重要。</p>
               <div class="stocks">
-                <div class="stock"><div class="stock-head"><span class="symbol">MU</span><strong>Micron</strong></div><p>HBM 与 DRAM 涨价逻辑都在，但要看产能什么时候真的出来。</p></div>
+                <div class="stock"><div class="stock-head"><span class="symbol">SNDK</span><strong>闪迪</strong></div><p>和海力士后续开发HBF，当下美国NAND，波动率如MEME，但是后续可能会因为利润往HBM靠近，市场份额被长江扩产能而被重新定价被分化</p></div>
+                <div class="stock"><div class="stock-head"><span class="symbol">SKHY</span><strong>SK海力士</strong></div><p>HBM目前市场份额最高的公存储公司，深耕HBM但是因为韩国DISCOUNT目前市场定价在美国而不再韩国，跟三星可以平起平坐的存储公司，处于价值洼地，严重被低估，长期订单被锁定但是后续HBM爆发力还没被定价</p></div>
+                <div class="stock"><div class="stock-head"><span class="symbol">MU</span><strong>Micron</strong></div><p>机构报团，存储最稳的标的，美国纯正血统，方向风向标，HBM制造能力后续最可能因为血统高等还有美国重振工业而被带起来，不缺订单，皇家存储</p></div>
+              </div>
+            </article>
+            <article class="sector glass" data-id="s_8qqhmvgm14" data-tint="amber">
+              <div class="card-top">
+                <span class="well app"><img class="app-icon" src="/assets/icons/watch.svg" alt="" width="48" height="48"></span>
+                <span class="pill">1 只</span>
+              </div>
+              <h3>电力</h3>
+              <p>美国基础电力设施不好，AI算力非常缺电，在马斯克牛逼没实现之前就买</p>
+              <div class="stocks">
+                <div class="stock"><div class="stock-head"><span class="symbol">BE</span><strong>Bloom energy</strong></div><p>有订单锁定，电力老二，相比GEV爆发力更强，一根K熊转牛，白宫严选</p></div>
               </div>
             </article>
           </div>
@@ -385,6 +412,11 @@
             <small>X</small>
             <strong>@johny_xie</strong>
           </a>
+          <a class="contact glass" href="/rss/">
+            <span class="well app"><img class="app-icon" src="/assets/icons/rss.svg" alt="" width="56" height="56"></span>
+            <small>RSS 订阅</small>
+            <strong>关注最新博文</strong>
+          </a>
         </div>
       </section>
     </main>
@@ -405,8 +437,22 @@
       </div>
     </form>
 
+    <dialog id="paletteDialog" aria-label="命令面板">
+      <div class="modal glass palette">
+        <div class="palette-head">
+          <svg class="ic"><use href="#i-search"></use></svg>
+          <label class="sr-only" for="paletteInput">搜索站点、观点与板块</label>
+          <input id="paletteInput" type="search" role="combobox" aria-expanded="true" aria-controls="paletteList"
+                 aria-autocomplete="list" autocomplete="off" placeholder="搜站点、观点、板块，或切主题…" />
+          <button class="btn ghost" id="paletteClose" type="button">Esc</button>
+        </div>
+        <ul class="palette-list" id="paletteList" role="listbox" aria-label="搜索结果"></ul>
+        <p class="palette-foot">↑↓ 选择 · Enter 打开 · 也可以直接按 /</p>
+      </div>
+    </dialog>
+
     <dialog id="adminDialog">
-      <form class="modal glass" id="adminForm" method="dialog">
+      <form class="modal glass" id="adminForm">
         <p class="kicker"><svg class="ic"><use href="#i-lock"></use></svg> Author</p>
         <h3>作者入口</h3>
         <p>输入管理口令后，即可管理项目、发布观点、更新关注板块与恢复历史版本。</p>
@@ -415,8 +461,8 @@
           <input id="adminToken" type="password" name="token" autocomplete="current-password" />
         </label>
         <div class="modal-actions">
-          <button class="btn ghost" value="cancel" type="submit">取消</button>
-          <button class="btn primary" id="adminLoginBtn" type="button">进入</button>
+          <button class="btn ghost" id="adminCancelBtn" type="button">取消</button>
+          <button class="btn primary" id="adminLoginBtn" type="submit">进入</button>
         </div>
       </form>
     </dialog>
@@ -465,7 +511,7 @@
     </dialog>
 
     <div class="toast-host" id="toastHost" aria-live="polite"></div>
-    <script src="/js/app.js?v=20260823a" type="module"></script>
+    <script src="/js/app.js?v=20260830a" type="module"></script>
     <noscript>
       Chase Xie 是独立开发者。站点、观点和盯盘不需要 JavaScript 也能读。
       关于：/about/ · HBM 笔记：/notes/hbm-supply/

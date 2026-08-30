@@ -6,6 +6,7 @@
     <title>HBM 比标题先紧 · Chase Xie</title>
     <meta name="description" content="HBM（High Bandwidth Memory）和先进封装，是当前 AI 训练与推理资本开支里比 GPU 标题更硬的供给约束。这篇写我为什么这么看、在盯什么。" />
     <link rel="canonical" href="https://chaestblog.pages.dev/notes/hbm-supply/" />
+    <link rel="alternate" type="application/rss+xml" title="chaestblog RSS" href="https://chaestblog.pages.dev/rss.xml" />
     <meta property="og:type" content="article" />
     <meta property="og:locale" content="zh_CN" />
     <meta property="og:site_name" content="chaestblog" />
@@ -21,8 +22,8 @@
     <meta name="twitter:description" content="HBM 和先进封装是当前 AI 开支里比 GPU 标题更硬的约束。供给爬坡比叙事重要。" />
     <meta name="twitter:image" content="https://chaestblog.pages.dev/assets/og.jpg" />
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
-    <link rel="stylesheet" href="/css/themes.css?v=20260820b" />
-    <link rel="stylesheet" href="/css/styles.css?v=20260820b" />
+    <link rel="stylesheet" href="/css/themes.css?v=20260830a" />
+    <link rel="stylesheet" href="/css/styles.css?v=20260830a" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -53,12 +54,16 @@
           var theme = localStorage.getItem("hubTheme");
           if (theme === "liquid" || theme === "eye" || theme === "ink") {
             document.documentElement.dataset.theme = theme;
+            return;
+          }
+          if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            document.documentElement.dataset.theme = "ink";
           }
         } catch (error) {}
       })();
     </script>
   </head>
-  <body class="page">
+  <body class="page article-page">
     <div class="atmosphere" aria-hidden="true">
       <span class="blob blob-a"></span>
       <span class="blob blob-b"></span>
@@ -74,7 +79,7 @@
       </a>
       <nav class="nav-links" aria-label="页面">
         <a href="/#sites">站点</a>
-        <a href="/#notes">观点</a>
+        <a href="/notes/">观点</a>
         <a href="/about/">关于</a>
         <a href="/#contact">联系</a>
       </nav>
@@ -85,7 +90,7 @@
       </div>
     </header>
     <main class="page-doc">
-      <p class="crumbs"><a href="/">chaestblog</a> / <a href="/#notes">观点</a> / HBM</p>
+      <p class="crumbs"><a href="/">chaestblog</a> / <a href="/notes/">观点</a> / HBM</p>
       <p class="kicker">Notes</p>
       <h1>HBM 比标题先紧</h1>
       <p class="updated">2026-08-17 · Chase Xie</p>
@@ -111,6 +116,6 @@
       </div>
       <p class="disclaimer">个人观察，用来固定我当时为什么这么看。不是投资建议，也不构成任何推荐。</p>
     </main>
-    <script src="/js/page.js?v=20260818a" type="module"></script>
+    <script src="/js/page.js?v=20260830a" type="module"></script>
   </body>
 </html>

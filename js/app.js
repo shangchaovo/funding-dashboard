@@ -2,6 +2,7 @@ import { esc, toast, api, formatDay, icon, appIcon, shotImg } from "./util.js";
 import { bindThemeSwitch, bindGlassLight } from "./theme.js";
 import { initAdmin } from "./admin.js";
 import { initDanmaku } from "./danmaku.js";
+import { initPalette } from "./palette.js";
 
 const RESEARCH = "https://fresearch.cc.cd/";
 
@@ -11,6 +12,8 @@ const state = {
   watchlist: { sectors: [], disclaimer: "" },
   now: { text: "" },
   admin: false,
+  health: null,
+  hits: null,
 };
 
 export function getState() {
@@ -79,10 +82,12 @@ function renderHero() {
   }
   const noteCount = (state.notes.items || []).length;
   const stockCount = (state.watchlist.sectors || []).reduce((sum, sector) => sum + (sector.stocks || []).length, 0);
+  const visits = Number(state.hits?.total || 0);
   document.getElementById("statRow").innerHTML = `
     <div class="stat"><b>${projects.length}</b><span>在线站点</span></div>
     <div class="stat"><b>${noteCount}</b><span>条观点</span></div>
     <div class="stat"><b>${stockCount}</b><span>只在盯</span></div>
+    ${visits ? `<div class="stat"><b>${visits.toLocaleString("zh-CN")}</b><span>次到访</span></div>` : ""}
   `;
 }
 
@@ -98,9 +103,9 @@ function siteCardHtml(item, clone) {
       ${item.shot && item.live ? `<a class="shot" href="${esc(item.live)}" target="_blank" rel="noopener"${tab}>${shotImg(item.shot, `${item.name} 页面截图`)}</a>` : ""}
       <div class="card-top">
         <span class="well app">${appIcon(item.icon || "book", 46)}</span>
-        <span class="pill ${item.status === "live" ? "live" : "degraded"}">
+        <span class="pill ${item.status === "live" ? "live" : "degraded"}"${item.status === "live" ? ` data-health="${esc(item.id)}"` : ""}>
           <i class="live-dot" aria-hidden="true"></i>
-          ${item.status === "live" ? "在线" : "已隐藏"}
+          <span class="pill-label">${item.status === "live" ? "在线" : "已隐藏"}</span>
         </span>
       </div>
       <div>
@@ -198,6 +203,9 @@ function renderWatch() {
 
 function renderContact() {
   const items = (state.site.socials || []).filter((item) => item.kind !== "soon" && item.href);
+  if (!items.some((item) => item.id === "rss")) {
+    items.push({ id: "rss", icon: "rss", label: "RSS 订阅", handle: "关注最新博文", href: "/rss/" });
+  }
   document.getElementById("contactGrid").innerHTML = items.map((item) => `
     <a class="contact glass" href="${esc(item.href)}" ${item.href.startsWith("mailto:") ? "" : `target="_blank" rel="${item.id === "github" || item.id === "x" ? "me noopener" : "noopener"}"`}>
       <span class="well app">${appIcon(item.icon || "mail", 56)}</span>
@@ -207,6 +215,25 @@ function renderContact() {
   `).join("");
 }
 
+// 探活结果只改状态标签，不重渲染卡片，否则跑马灯动画会从头开始
+function applyHealth() {
+  for (const check of state.health?.checks || []) {
+    const label = check.ok
+      ? `在线${check.ms ? ` · ${check.ms}ms` : ""}`
+      : check.status ? `异常 ${check.status}` : "连不上";
+    const title = check.ok
+      ? `最近一次探测 ${check.ms}ms（${formatDay(state.health.checkedAt)}）`
+      : `最近一次探测没连上（${check.status ? `HTTP ${check.status}` : "超时"}）`;
+    for (const pill of document.querySelectorAll(`[data-health="${CSS.escape(check.id)}"]`)) {
+      pill.classList.toggle("live", check.ok);
+      pill.classList.toggle("degraded", !check.ok);
+      pill.title = title;
+      const text = pill.querySelector(".pill-label");
+      if (text) text.textContent = label;
+    }
+  }
+}
+
 export function render() {
   if (!state.site) return;
   renderHero();
@@ -214,24 +241,45 @@ export function render() {
   renderNotes();
   renderWatch();
   renderContact();
+  applyHealth();
 }
 
-async function loadContent() {
-  const staticContent = await Promise.all([
+async function loadStaticSeed() {
+  const [site, notes, watchlist, now] = await Promise.all([
     fetch("/data/site.json").then((res) => res.json()),
     fetch("/data/notes.json").then((res) => res.json()),
     fetch("/data/watchlist.json").then((res) => res.json()),
     fetch("/data/now.json").then((res) => res.json()).catch(() => ({ text: "" })),
   ]);
-  state.site = staticContent[0];
+  return { site, notes, watchlist, now };
+}
+
+async function loadContent() {
   try {
-    const content = await api("/api/content");
-    setContent(content);
+    setContent(await api("/api/content"));
   } catch (error) {
-    const [site, notes, watchlist, now] = staticContent;
-    setContent({ site, notes, watchlist, now });
+    setContent(await loadStaticSeed());
     toast("内容接口暂不可用，已显示仓库里的种子稿。");
   }
+}
+
+// 一次会话只上报一笔，KV 的写配额扛得住
+async function countVisit() {
+  let counted = false;
+  try {
+    counted = sessionStorage.getItem("hubCounted") === "1";
+  } catch (error) {}
+  const hits = await api("/api/hit", { method: counted ? "GET" : "POST" });
+  if (!counted) {
+    try { sessionStorage.setItem("hubCounted", "1"); } catch (error) {}
+  }
+  state.hits = hits;
+  renderHero();
+}
+
+async function loadHealth() {
+  state.health = await api("/api/health");
+  applyHealth();
 }
 
 async function boot() {
@@ -247,6 +295,10 @@ async function boot() {
   }
   initAdmin();
   initDanmaku();
+  initPalette();
+  // 这两个都是装饰性的，失败就安静地保持静态兜底
+  loadHealth().catch(() => {});
+  countVisit().catch(() => {});
 }
 
 boot().catch((error) => toast(error.message || "页面启动失败"));

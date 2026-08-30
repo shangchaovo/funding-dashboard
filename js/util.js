@@ -67,5 +67,9 @@ export function appIcon(name, size = 40) {
 
 export function shotImg(src, alt = "项目页面截图") {
   if (!src || !/^(assets\/shots\/[a-z0-9-]+\.(jpg|jpeg|png|webp)|api\/project-shot\/[a-z0-9-]{1,60})$/i.test(src)) return "";
-  return `<img src="/${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
+  const img = `<img src="/${esc(src)}" alt="${esc(alt)}" width="1280" height="800" loading="lazy" decoding="async">`;
+  // 仓库里的截图都有 scripts/make-webp.py 生成的同名 WebP；工作台上传的走接口，没有
+  const webp = src.replace(/\.(jpe?g|png)$/i, ".webp");
+  if (webp === src) return img;
+  return `<picture><source type="image/webp" srcset="/${esc(webp)}">${img}</picture>`;
 }

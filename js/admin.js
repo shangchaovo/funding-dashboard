@@ -72,7 +72,10 @@ async function saveProjects(projects) {
 
 function openAdmin() {
   const target = getState().admin ? dialog("adminPanelDialog") : dialog("adminDialog");
-  if (target && !target.open) target.showModal();
+  if (target && !target.open) {
+    target.showModal();
+    target.querySelector("input")?.focus();
+  }
 }
 
 function bindAvatarUnlock() {
@@ -93,9 +96,13 @@ function bindAvatarUnlock() {
 }
 
 function bindLogin() {
-  document.getElementById("adminLoginBtn")?.addEventListener("click", async () => {
+  const form = document.getElementById("adminForm");
+  const button = document.getElementById("adminLoginBtn");
+  const tokenInput = document.getElementById("adminToken");
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (button.disabled) return;
     const token = document.getElementById("adminToken").value;
-    const button = document.getElementById("adminLoginBtn");
     button.disabled = true;
     try {
       await api("/api/session", { method: "POST", body: JSON.stringify({ token }) });
@@ -109,6 +116,10 @@ function bindLogin() {
     } finally {
       button.disabled = false;
     }
+  });
+  document.getElementById("adminCancelBtn")?.addEventListener("click", () => {
+    dialog("adminDialog").close();
+    tokenInput.value = "";
   });
 }
 
@@ -125,21 +136,23 @@ function editNote(existing) {
     title: existing ? "修改观点" : "发布观点",
     html:
       field("标题", "title", existing?.title, "text", "maxlength=80 required") +
-      field("文章路径（英文，可留空）", "slug", existing?.slug, "text", "pattern=[a-z0-9-]{1,80}") +
-      field("正文", "body", existing?.body, "textarea", "maxlength=4000 required"),
+      field("文章路径（英文小写，填了就有独立页面 /notes/<路径>/）", "slug", existing?.slug, "text", "pattern=[a-z0-9-]{1,80}") +
+      field("摘要（首页和 RSS 里显示）", "body", existing?.body, "textarea", "maxlength=4000 required") +
+      field("全文（Markdown，可留空；支持 ## 标题、列表、引用、代码块、[链接](地址)）", "article", existing?.article, "textarea", "maxlength=20000") +
+      `<p class="field-note">填了「文章路径」+「全文」，保存后 /notes/ 归档页、RSS 和 sitemap 会自动带上这篇，不需要改仓库。</p>`,
     onSubmit: async (data) => {
       const items = [...(getState().notes.items || [])];
+      const patch = {
+        title: data.title,
+        body: data.body,
+        slug: data.slug || undefined,
+        article: data.article || undefined,
+      };
       if (existing) {
         const index = items.findIndex((item) => item.id === existing.id);
-        if (index >= 0) items[index] = { ...existing, title: data.title, body: data.body, slug: data.slug || undefined };
+        if (index >= 0) items[index] = { ...existing, ...patch, updatedAt: new Date().toISOString() };
       } else {
-        items.unshift({
-          id: uid("n"),
-          title: data.title,
-          body: data.body,
-          ...(data.slug ? { slug: data.slug } : {}),
-          createdAt: new Date().toISOString(),
-        });
+        items.unshift({ id: uid("n"), ...patch, createdAt: new Date().toISOString() });
       }
       await saveNotes(items);
     },

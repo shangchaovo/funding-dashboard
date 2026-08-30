@@ -7,8 +7,13 @@ cd "$(dirname "$0")/.."
 STAGE="$(mktemp -d /tmp/chase-hub.XXXXXX)"
 trap 'rm -rf "$STAGE"' EXIT
 
-cp index.html robots.txt sitemap.xml "$STAGE/"
-for dir in assets css js data functions about notes; do
+# 404.html 必须是真实静态文件：Pages 的未匹配路径不会走 Function
+node scripts/build-static.mjs
+
+# rss.xml / sitemap.xml 由 functions/ 动态生成，不再上传静态副本
+cp index.html 404.html robots.txt rss.xsl _headers "$STAGE/"
+# shared/ 不是路由，但 functions/ 从它 import 校验规则和模板，必须一起打包
+for dir in assets css js data functions shared about notes rss; do
   cp -R "$dir" "$STAGE/"
 done
 

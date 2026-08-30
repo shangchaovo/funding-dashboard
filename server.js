@@ -2,10 +2,13 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const rules = require("./shared/rules");
 
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 8777);
+
+// shared/ 是 ESM（functions/ 也从那里取同一份规则和模板），CJS 这边用动态 import 装载
+let rules = null;
+let view = null;
 
 function loadEnv() {
   const file = path.join(ROOT, ".env");
@@ -39,14 +42,17 @@ const MIME = {
   ".ico": "image/x-icon",
   ".txt": "text/plain; charset=utf-8",
   ".xml": "application/xml; charset=utf-8",
+  ".xsl": "application/xml; charset=utf-8",
 };
 
-const STATIC_ROOTS = new Set(["css", "js", "data", "assets", "about", "notes"]);
-const STATIC_FILES = new Set(["index.html", "robots.txt", "sitemap.xml"]);
+const STATIC_ROOTS = new Set(["css", "js", "data", "assets", "about", "notes", "rss"]);
+const STATIC_FILES = new Set(["index.html", "404.html", "robots.txt", "rss.xsl"]);
 const rates = new Map();
 const loginFailures = new Map();
 const versions = new Map();
 const projectShots = new Map();
+const hits = { total: 0, days: {} };
+let health = null;
 
 function send(res, status, body, headers = {}) {
   res.writeHead(status, {
@@ -226,6 +232,23 @@ function safeStaticPath(urlPath) {
   }
 }
 
+async function probeTargets(targets) {
+  const checks = await Promise.all(targets.map(async (target) => {
+    const startedAt = Date.now();
+    try {
+      const response = await fetch(target.url, {
+        redirect: "follow",
+        headers: { "User-Agent": "chaestblog-health/1.0" },
+        signal: AbortSignal.timeout(6000),
+      });
+      return { id: target.id, ok: response.status < 400, status: response.status, ms: Date.now() - startedAt };
+    } catch (error) {
+      return { id: target.id, ok: false, status: 0, ms: Date.now() - startedAt };
+    }
+  }));
+  return { checkedAt: new Date().toISOString(), checks };
+}
+
 function readBody(req, limit = 200_000) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -392,6 +415,27 @@ async function handleApi(req, res, url) {
     return;
   }
 
+  if (route === "/api/health" && req.method === "GET") {
+    const site = readJson("site.json", { projects: [] });
+    const targets = (site.projects || [])
+      .filter((project) => project.status === "live" && project.live)
+      .map((project) => ({ id: project.id, url: project.live }));
+    const fresh = health && Date.now() - Date.parse(health.checkedAt) < 10 * 60 * 1000;
+    if (!fresh) health = await probeTargets(targets);
+    sendJson(res, 200, { ...health, stale: false });
+    return;
+  }
+
+  if (route === "/api/hit" && (req.method === "POST" || req.method === "GET")) {
+    const day = new Date().toISOString().slice(0, 10);
+    if (req.method === "POST") {
+      hits.total += 1;
+      hits.days[day] = (hits.days[day] || 0) + 1;
+    }
+    sendJson(res, 200, { total: hits.total, today: hits.days[day] || 0 });
+    return;
+  }
+
   if (route === "/api/danmaku" && req.method === "GET") {
     sendJson(res, 200, readJson("danmaku.json", { items: [] }));
     return;
@@ -432,6 +476,37 @@ async function handleApi(req, res, url) {
   sendJson(res, 404, { error: "找不到这个接口" });
 }
 
+// 复刻 functions/notes/[[path]].js、rss.xml.js、sitemap.xml.js 的行为
+function renderDynamic(res, pathname) {
+  const notes = readJson("notes.json", { items: [] });
+  if (pathname === "/rss.xml") {
+    send(res, 200, view.rssXml(notes), { "Content-Type": "application/rss+xml; charset=utf-8" });
+    return true;
+  }
+  if (pathname === "/sitemap.xml") {
+    send(res, 200, view.sitemapXml(notes), { "Content-Type": MIME[".xml"] });
+    return true;
+  }
+  if (pathname === "/notes") {
+    send(res, 301, "", { Location: "/notes/" });
+    return true;
+  }
+  if (pathname === "/notes/") {
+    send(res, 200, view.archivePage(notes), { "Content-Type": MIME[".html"] });
+    return true;
+  }
+  const match = pathname.match(/^\/notes\/([^/]+)\/?$/);
+  if (match) {
+    const slug = rules.safeSlug(decodeURIComponent(match[1]));
+    const note = slug ? view.publishedNotes(notes).find((item) => item.slug === slug) : null;
+    if (note) {
+      send(res, 200, view.notePage(note), { "Content-Type": MIME[".html"] });
+      return true;
+    }
+  }
+  return false;
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host || "127.0.0.1"}`);
@@ -443,22 +518,28 @@ const server = http.createServer(async (req, res) => {
       send(res, 405, "Method Not Allowed");
       return;
     }
+    // 和线上一样：手写的静态页优先，剩下的交给动态渲染
     const file = safeStaticPath(url.pathname);
-    if (!file || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
-      send(res, 404, "Not Found", { "Content-Type": "text/plain; charset=utf-8" });
+    if (file && fs.existsSync(file) && !fs.statSync(file).isDirectory()) {
+      const ext = path.extname(file).toLowerCase();
+      send(res, 200, fs.readFileSync(file), { "Content-Type": MIME[ext] || "application/octet-stream" });
       return;
     }
-    const ext = path.extname(file).toLowerCase();
-    send(res, 200, fs.readFileSync(file), { "Content-Type": MIME[ext] || "application/octet-stream" });
+    if (renderDynamic(res, url.pathname)) return;
+    send(res, 404, fs.readFileSync(path.join(ROOT, "404.html")), { "Content-Type": MIME[".html"] });
   } catch (error) {
     const status = error.status || (error instanceof SyntaxError ? 400 : 500);
     sendJson(res, status, { error: error.message || "服务器出错了" });
   }
 });
 
-server.listen(PORT, "127.0.0.1", () => {
-  console.log(`Chase hub http://127.0.0.1:${PORT}`);
-});
+(async () => {
+  rules = await import("./shared/rules.mjs");
+  view = await import("./shared/view.mjs");
+  server.listen(PORT, "127.0.0.1", () => {
+    console.log(`Chase hub http://127.0.0.1:${PORT}`);
+  });
+})();
 
 server.on("error", (error) => {
   if (error.code === "EADDRINUSE") {
